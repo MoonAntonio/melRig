@@ -1,0 +1,3176 @@
+window -title "Auto Rigging" -widthHeight 400 200 AutoRig;
+   
+     columnLayout -adjustableColumn true;
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+     
+          frameLayout -label "Paso 0: Preparación" -collapsable true -collapse true -borderStyle "etchedIn"; 
+          
+               gridLayout -numberOfColumns 3 -cellWidthHeight 100 40;
+               
+                    button -label "1º LLamar_Plugin" -command "LLamar_Plugin";
+                    
+                    text -label "Nombre";
+                    
+                    string $Nombre = `textField`;                       
+                                    
+               setParent ..; 
+          setParent ..;
+          
+     setParent ..;       
+     
+     ///////////////////////////////////////////////////////////////////////////////////////////////////   
+  
+    frameLayout -label "Paso 1: Pierna" -collapsable true -collapse true -borderStyle "etchedIn"; 
+          
+               gridLayout -numberOfColumns 4 -cellWidthHeight 100 40;
+               
+                    button -label "1º Posicionar" -command "Posicionar_Pierna";
+                    button -label "2º IK" -command "Pierna_IK";
+                    button -label "3º Master_Pie" -command "Master_Pie";
+                    button -label "4º FK" -command "Pierna_FK";
+                  
+               setParent ..; 
+          setParent ..;
+          
+     setParent ..;  
+     
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+     
+          frameLayout -label "Paso 2: Brazo" -collapsable true -collapse true -borderStyle "etchedIn"; 
+          
+               gridLayout -numberOfColumns 4 -cellWidthHeight 100 40;
+               
+                   
+                    button -label "1º Posicionar" -command "Posicionar_Brazo";
+                    button -label "2º IK" -command "Brazo_IK";
+                    button -label "3º Master_Mano" -command "Master_Mano";                 
+                    button -label "5º FK" -command "Brazo_FK";
+                                           
+                             
+               setParent ..; 
+          setParent ..;
+          
+     setParent ..;  
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+     
+          frameLayout -label "Paso 3: Manos" -collapsable true -collapse true -borderStyle "etchedIn"; 
+          
+               gridLayout -numberOfColumns 4 -cellWidthHeight 100 40;
+    
+                    button -label "1º Posicionar" -command "Posicionar_Dedos";
+                    button -label "2º Master_Dedos" -command "Master_Dedos";
+                    button -label "3º Crear_Dedos" -command "Crear_Dedos";               
+                   
+         
+               setParent ..; 
+          setParent ..;
+          
+     setParent ..;  
+     
+     ///////////////////////////////////////////////////////////////////////////////////////////////////  
+     
+          frameLayout -label "Paso 4: Columna" -collapsable true -collapse true -borderStyle "etchedIn"; 
+          
+               gridLayout -numberOfColumns 4 -cellWidthHeight 100 40;
+    
+                   button -label "1º Posicionar" -command "Posicionar_Columna";
+                   button -label "2º FK" -command "Columna_FK";
+                    button -label "3º Master_Cadera" -command "Master_Cadera";
+                   button -label "4º Master_Cuerpo" -command "Master_Cuerpo";
+         
+               setParent ..; 
+          setParent ..;
+          
+     setParent ..;  
+     
+     ///////////////////////////////////////////////////////////////////////////////////////////////////  
+     
+          frameLayout -label "Paso 5: Master General" -collapsable true -collapse true -borderStyle "etchedIn"; 
+          
+               gridLayout -numberOfColumns 4 -cellWidthHeight 100 40;
+    
+                   button -label "1º Master_General" -command "Master_General";
+                  
+         
+               setParent ..; 
+          setParent ..;
+          
+     setParent ..;     
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+frameLayout -label "*Opcionales" -collapsable true -collapse true -borderStyle "etchedIn"; 
+          
+               gridLayout -numberOfColumns 3 -cellWidthHeight 100 40;
+               
+                    button -label "Twist_Brazos" -command "Twist_Brazos";
+                    button -label "Freeze" -command "Freeze";
+                  
+               setParent ..; 
+          setParent ..;
+          
+     setParent ..;  
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    
+
+
+proc LLamar_Plugin() {
+    
+  
+    ds_rigTools;
+    
+//source "C:/Users/Moon/Documents/maya/scripts/ds_rigTools.mel";
+//source "C:/Users/Moon/Documents/maya/scripts/ds_rigLib.mel";
+    
+    }
+ 		            
+    
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+//            ______ _                       
+//            | ___ (_)                      
+//            | |_/ /_  ___ _ __ _ __   __ _ 
+//            |  __/| |/ _ \ '__| '_ \ / _` |
+//            | |   | |  __/ |  | | | | (_| |
+//            \_|   |_|\___|_|  |_| |_|\__,_| 
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+
+
+proc Posicionar_Pierna() {
+    
+////////////////////////////////////////////// Se crean las cadenas de huesos y se posicionan (rotando y escalando NO MOVIENDO)
+////////////////////////////////////////////// Renombrar
+JointTool;
+
+select -d;
+joint -p 1.919 2.943 -0.687 ;
+joint -p 1.639 -3.43 -0.964 ;
+joint -e -zso -oj xyz -sao yup joint1;
+rename "joint1" "Human_L_upleg__JS";
+
+joint -p 1.543 -8.18 -2.014 ;
+joint -e -zso -oj xyz -sao yup joint2;
+rename "joint2" "Human_L_lowleg__JS";
+  
+joint -p 1.378 -10.352 -0.538 ;
+joint -e -zso -oj xyz -sao yup joint3;
+rename "joint3" "Human_L_ankle__JS";
+ 
+joint -p 1.356 -10.375  2.469 ;
+joint -e -zso -oj xyz -sao yup joint4;
+rename "joint4" "Human_L_Toe__JS";
+
+
+select -cl  ;
+
+
+    rename "joint5" "Human_L_Toe_End__JS";
+    
+    select -r Human_L_ankle__JS;
+    ds_rigTools_curveCreateWrapper("joint");
+    rename "joint" "Human_L_Heel__JS";
+    
+    joint -p 1.726 -10.355 -3.2818 ;
+    joint -e -zso -oj xyz -sao yup Human_L_Heel__JS;
+	rename "joint1" "Human_L_Heel_End__JS";
+	
+	select -r Human_L_ankle__JS;
+    select -tgl Human_L_Heel__JS;
+    doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+    parentConstraint -mo -weight 1;
+    
+	transformLimits -rx  0 0  -erx 1 1 Human_L_Toe__JS;
+    transformLimits -ry 0 0 -ery 1 1 Human_L_Toe__JS;
+    transformLimits -rz 0 0 -erz 1 1 Human_L_Toe__JS;
+    
+    transformLimits -rx  0 0  -erx 1 1 Human_L_ankle__JS;
+    transformLimits -ry 0 0 -ery 1 1 Human_L_ankle__JS;
+    transformLimits -rz 0 0 -erz 1 1 Human_L_ankle__JS;
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+
+ 
+}//////////////////////////////////////////////FIN
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+
+
+
+proc Clonar_Posicion_Pierna(){
+    
+      //////////////////////////////////////////////clonas cadena de huesos (skeleton mirror --> mirror YZ)
+    
+    
+   select -r Human_L_upleg__JS ;
+mirrorJoint -mirrorYZ -mirrorBehavior -searchReplace "_L" "_R";
+// Result: Human_R_upleg__JS Human_R_lowleg__JS Human_R_ankle__JS Human_R_Toe__JS Human_R_Toe_End__JS Human_R_Heel_End__JS // 
+
+select -r Human_L_Heel__JS ;
+mirrorJoint -mirrorYZ -mirrorBehavior -searchReplace "_L" "_R";
+// Result: Human_R_Heel__JS Human_R_Heel_End__JS Human_L_Heel__JS_pointConstraint2 // 
+
+    select -r Human_R_ankle__JS;
+    select -tgl Human_R_Heel__JS;
+    doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+    parentConstraint -mo -weight 1;
+    
+ 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+Freeze_Piernas();     
+
+}//////////////////////////////////////////////FIN
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+
+
+proc Freeze_Piernas(){
+    
+//////////////////////////////////////////////Freeze Transformations (resetea rotaciones y escalas)
+    
+select -r Human_L_upleg__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+select -r Human_R_upleg__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
+	transformLimits -rx  0 0  -erx 0 0 Human_L_Toe__JS;
+    transformLimits -ry 0 0 -ery 0 0 Human_L_Toe__JS;
+    transformLimits -rz 0 0 -erz 0 0 Human_L_Toe__JS;
+    
+    transformLimits -rx  0 0  -erx 0 0 Human_L_ankle__JS;
+    transformLimits -ry 0 0 -ery 0 0 Human_L_ankle__JS;
+    transformLimits -rz 0 0 -erz 0 0 Human_L_ankle__JS;
+    
+    
+    transformLimits -rx  0 0  -erx 0 0 Human_R_Toe__JS;
+    transformLimits -ry 0 0 -ery 0 0 Human_R_Toe__JS;
+    transformLimits -rz 0 0 -erz 0 0 Human_R_Toe__JS;
+    
+    transformLimits -rx  0 0  -erx 0 0 Human_R_ankle__JS;
+    transformLimits -ry 0 0 -ery 0 0 Human_R_ankle__JS;
+    transformLimits -rz 0 0 -erz 0 0 Human_R_ankle__JS;
+
+    
+}//////////////////////////////////////////////FIN
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+
+
+
+
+proc Pierna_IK(){
+    
+     Clonar_Posicion_Pierna();
+     
+     
+//////////////////////////////////////////////Desconecta Hueso Tobillo
+
+  
+    select -r Human_L_ankle__JS ;
+    DisconnectJoint;
+    select -r joint1 ;
+    rename "joint1" "Human_L_lowleg_End__JS";
+    setAttr "Human_L_lowleg_End__JS.radius" 0.6;
+         
+//////////////////////////////////////////////Crear el ik de la pierna (terminado este punto tirando del ik debe llevarse la cadena del pie < la cadena de la pierna < el ik )
+
+select -r Human_L_upleg__JS.rotatePivot ;
+select -tgl Human_L_lowleg_End__JS.rotatePivot ;
+ikHandle -sol ikRPsolver;
+// Result: Human_L_leg_ikHandle effector1 // 
+rename "ikHandle1" "Human_L_leg_ikHandle";
+
+
+
+
+//////////////////////////////////////////////Crear Controlador De la rodilla (IMPORTANTE!!!) Alinear el pivote con la rodilla
+select -r Human_L_lowleg__JS ;
+
+ds_rigTools_curveCreateWrapper("sphere");
+
+rename "sphere" "Human_L_leg_pv__CA";
+
+ds_rigLib_FRZGrps("");
+
+//////////////////////////////////////////////Constrain pole vector del pivote de la rodilla al ik
+
+select -cl  ;
+select -r Human_L_leg_pv__CA ;
+select -tgl Human_L_leg_ikHandle ;
+poleVectorConstraint -weight 1;
+
+
+//////////////////////////////////////////////Constraint Point: Lowleg_End --> AnkleLeg    
+
+select -r Human_L_lowleg_End__JS ;
+select -tgl Human_L_ankle__JS ;
+doCreatePointConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+pointConstraint -mo -weight 1;
+
+// Result: Human_L_ankle__JS_pointConstraint1 // 
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////    
+
+Clonar_Pierna_IK();
+
+
+    
+    }//////////////////////////////////////////////FIN
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////    
+
+
+
+
+
+proc Clonar_Pierna_IK(){
+    
+ 
+
+//////////////////////////////////////////////Desconecta Hueso Tobillo
+
+  
+    select -r Human_R_ankle__JS ;
+    DisconnectJoint;
+    select -r joint1 ;
+    rename "joint1" "Human_R_lowleg_End__JS";
+    setAttr "Human_R_lowleg_End__JS.radius" 0.5;
+       
+    
+
+    
+//////////////////////////////////////////////Crear el ik de la pierna (terminado este punto tirando del ik debe llevarse la cadena del pie < la cadena de la pierna < el ik )
+
+select -r Human_R_upleg__JS.rotatePivot ;
+select -tgl Human_R_lowleg_End__JS.rotatePivot ;
+ikHandle -sol ikRPsolver;
+// Result: Human_L_leg_ikHandle effector1 // 
+rename "ikHandle1" "Human_R_leg_ikHandle";
+
+
+
+
+//////////////////////////////////////////////Crear Controlador De la rodilla (IMPORTANTE!!!) Alinear el pivote con la rodilla
+select -r Human_R_lowleg__JS ;
+
+ds_rigTools_curveCreateWrapper("sphere");
+
+rename "sphere" "Human_R_leg_pv__CA";
+
+ds_rigLib_FRZGrps("");
+
+//////////////////////////////////////////////Constrain pole vector del pivote de la rodilla al ik
+
+select -cl  ;
+select -r Human_R_leg_pv__CA ;
+select -tgl Human_R_leg_ikHandle ;
+poleVectorConstraint -weight 1;
+
+
+
+//////////////////////////////////////////////Constraint Point: Lowleg_End --> AnkleLeg    
+
+select -r Human_R_lowleg_End__JS ;
+select -tgl Human_R_ankle__JS ;
+doCreatePointConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+pointConstraint -mo -weight 1;
+
+// Result: Human_R_ankle__JS_pointConstraint1 // 
+  
+  
+ 
+}//////////////////////////////////////////////FIN
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////    
+
+
+ 
+
+
+
+proc Master_Pie(){
+    
+    
+//////////////////////////////////////////////Crear Controlador Del Pie (IMPORTANTE!!!) Alinear el pivote con el TALON 
+
+
+select -r Human_L_Heel_End__JS ;
+ds_rigTools_curveCreateWrapper("arrowY");
+rename "arrowY" "Human_L_leg_ik__CA";
+setAttr "Human_L_leg_ik__CA.rotateZ" 0;
+setAttr "Human_L_leg_ik__CA.rotateY" 0;
+setAttr "Human_L_leg_ik__CA.rotateX" 180;
+
+scale -r 3 3 6 ;
+hilite Human_L_leg_ik__CA ;
+select -r Human_L_leg_ik__CA.cv[0:7] ;
+move -r -os -wd 0 0 -2.5 ;
+hilite -u Human_L_leg_ik__CA ;
+select -r Human_L_leg_ik__CA ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
+//////////////////////////////////////////////Crear locators y los emparenta entre si con el controlador del pie
+
+select -r Human_L_Toe_End__JS ;
+ds_rigTools_curveCreateWrapper("locator");
+rename "locator" "Human_L_toe_end__LOC";
+select -r Human_L_Toe__JS ;
+ds_rigTools_curveCreateWrapper("locator");
+rename "locator" "Human_L_toe__LOC";
+select -r Human_L_ankle__JS ;
+ds_rigTools_curveCreateWrapper("locator");
+rename "locator" "Human_L_ankle__LOC";
+
+select -r Human_L_leg_ikHandle ;
+select -tgl Human_L_toe__LOC ;
+parent;
+// Result: Human_L_leg_ikHandle // 
+
+select -r Human_L_toe__LOC ;
+select -tgl Human_L_toe_end__LOC ;
+parent;
+// Result: Human_L_toe__LOC // 
+
+select -r Human_L_toe_end__LOC ;
+select -tgl Human_L_ankle__LOC ;
+parent;
+// Result: Human_L_toe_end__LOC // 
+
+select -r Human_L_ankle__LOC ;
+select -tgl Human_L_leg_ik__CA ;
+parent;
+// Result: Human_L_ankle__LOC // 
+
+//////////////////////////////////////////////Crear los constraints en los Human_L_toe_end__LOCs
+select -cl  ;
+select -r Human_L_toe__LOC ;
+select -tgl Human_L_ankle__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_L_ankle__JS_orientConstraint1 // Constraint michael doblar pie!!
+
+
+select -r Human_L_toe_end__LOC ;
+select -add Human_L_Toe__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: grpHuman_L_Toe__JSFRZ_orientConstraint1 // Constraint michael jackson!!
+
+select -r Human_L_toe__LOC ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_toe_end__LOC ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_ankle__LOC ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_leg_ik__CA ;
+ds_rigLib_FRZGrps("");
+
+
+//////////////////////////////////////////////Crear Atributos 
+
+
+select -r Human_L_leg_ik__CA ;
+addAttr -ln "Pivotes"  -at double  -dv 0 |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA.Pivotes;
+addAttr -ln "Ankle"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA.Ankle;
+addAttr -ln "Toe"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA.Toe;
+addAttr -ln "End"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA.End;
+addAttr -ln "Roll"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA.Roll;
+addAttr -ln "TOES"  -at double  -dv 0 |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA.TOES;
+addAttr -ln "ToeX"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA.ToeX;
+addAttr -ln "ToeY"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA.ToeY;
+addAttr -ln "STRECHY"  -at double  -dv 0 |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA.STRECHY;
+addAttr -ln "StretchyUP"  -at double  -min -90 -max 90 -dv 1 |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA.StretchyUP;
+addAttr -ln "StretchyLW"  -at double  -min -90 -max 90 -dv 1 |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA.StretchyLW;
+
+select -r Human_L_leg_ik__CA ;
+
+setAttr -lock true "Human_L_leg_ik__CA.Pivotes";
+setAttr -lock true "Human_L_leg_ik__CA.TOES";
+setAttr -lock true "Human_L_leg_ik__CA.STRECHY";
+
+select -r Human_L_leg_ik__CA ;
+setAttr -lock true "Human_L_leg_ik__CA.sx";
+setAttr -lock true "Human_L_leg_ik__CA.sy";
+setAttr -lock true "Human_L_leg_ik__CA.sz";
+
+select -r Human_L_leg_pv__CA ;
+setAttr -lock true "Human_L_leg_pv__CA.rx";
+setAttr -lock true "Human_L_leg_pv__CA.ry";
+setAttr -lock true "Human_L_leg_pv__CA.rz";
+setAttr -lock true "Human_L_leg_pv__CA.sx";
+setAttr -lock true "Human_L_leg_pv__CA.sy";
+setAttr -lock true "Human_L_leg_pv__CA.sz";
+
+////////////////////////////////////////////// conectar atributos
+
+connectAttr -f Human_L_leg_ik__CA.Ankle Human_L_ankle__LOC.rotateZ;
+
+connectAttr -f Human_L_leg_ik__CA.Toe Human_L_toe__LOC.rotateZ;
+
+connectAttr -f Human_L_leg_ik__CA.End Human_L_toe_end__LOC.rotateX;
+
+connectAttr -f Human_L_leg_ik__CA.Roll Human_L_toe_end__LOC.rotateY;
+
+connectAttr -f Human_L_leg_ik__CA.ToeX Human_L_toe__LOC.rotateX;
+
+connectAttr -f Human_L_leg_ik__CA.ToeY Human_L_toe__LOC.rotateY;
+
+
+////////////////////////////////////////////// encuentra la escala que se le a dado al hueso en el paso anterior y se la transpasa al atributo
+float $scaleUP[] = `getAttr Human_L_upleg__JS.scale`;
+
+setAttr "Human_L_leg_ik__CA.StretchyUP" $scaleUP[0];
+
+
+connectAttr -f Human_L_leg_ik__CA.StretchyUP Human_L_upleg__JS.scaleX;
+// Result: Connected Human_L_leg_ik__CA.StretchyUP to Human_L_upleg__JS.scale.scaleX. //
+
+////////////////////////////////////////////// encuentra la escala que se le a dado al hueso en el paso anterior y se la transpasa al atributo
+
+float $scaleLW[] = `getAttr Human_L_lowleg__JS.scale`;
+
+setAttr "Human_L_leg_ik__CA.StretchyLW" $scaleLW[0];
+ 
+
+connectAttr -f Human_L_leg_ik__CA.StretchyLW Human_L_lowleg__JS.scaleX;
+// Result: Connected Human_L_leg_ik__CA.StretchyLW to Human_L_lowleg__JS.scale.scaleX. // 
+
+
+////////////////////////////////////////////// Freezea cadenas de huesos
+
+select -r Human_L_ankle__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_upleg__JS ;
+ds_rigLib_FRZGrps("");
+
+    
+ Clonar_Master_Pie();
+
+
+} //////////////////////////////////////////////FIN
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////// 
+
+
+
+
+
+proc Clonar_Master_Pie(){
+
+    
+//////////////////////////////////////////////Crear Controlador Del Pie (IMPORTANTE!!!) Alinear el pivote con el TALON 
+
+
+select -r Human_R_Heel_End__JS ;
+ds_rigTools_curveCreateWrapper("arrowY");
+rename "arrowY" "Human_R_leg_ik__CA";
+setAttr "Human_R_leg_ik__CA.rotateZ" 0;
+setAttr "Human_R_leg_ik__CA.rotateY" 0;
+setAttr "Human_R_leg_ik__CA.rotateX" 180;
+
+scale -r 3 3 6 ;
+hilite Human_R_leg_ik__CA ;
+select -r Human_R_leg_ik__CA.cv[0:7] ;
+move -r -os -wd 0 0 -2.5 ;
+hilite -u Human_R_leg_ik__CA ;
+select -r Human_R_leg_ik__CA ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
+//////////////////////////////////////////////Crear locators y los emparenta entre si con el controlador del pie
+
+select -r Human_R_Toe_End__JS ;
+ds_rigTools_curveCreateWrapper("locator");
+rename "locator" "Human_R_toe_end__LOC";
+select -r Human_R_Toe__JS ;
+ds_rigTools_curveCreateWrapper("locator");
+rename "locator" "Human_R_toe__LOC";
+select -r Human_R_ankle__JS ;
+ds_rigTools_curveCreateWrapper("locator");
+rename "locator" "Human_R_ankle__LOC";
+
+select -r Human_R_leg_ikHandle ;
+select -tgl Human_R_toe__LOC ;
+parent;
+// Result: Human_R_leg_ikHandle // 
+
+select -r Human_R_toe__LOC ;
+select -tgl Human_R_toe_end__LOC ;
+parent;
+// Result: Human_R_toe__LOC // 
+
+select -r Human_R_toe_end__LOC ;
+select -tgl Human_R_ankle__LOC ;
+parent;
+// Result: Human_R_toe_end__LOC // 
+
+select -r Human_R_ankle__LOC ;
+select -tgl Human_R_leg_ik__CA ;
+parent;
+// Result: Human_R_ankle__LOC // 
+
+//////////////////////////////////////////////Crear los constraints en los Human_R_toe_end__LOCs
+select -cl  ;
+select -r Human_R_toe__LOC ;
+select -tgl Human_R_ankle__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_R_ankle__JS_orientConstraint1 // Constraint michael doblar pie!!
+
+
+select -r Human_R_toe_end__LOC ;
+select -add Human_R_Toe__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: grpHuman_R_Toe__JSFRZ_orientConstraint1 // Constraint michael jackson!!
+
+select -r Human_R_toe__LOC ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_toe_end__LOC ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_ankle__LOC ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_leg_ik__CA ;
+ds_rigLib_FRZGrps("");
+   
+
+//////////////////////////////////////////////Crear Atributos 
+
+
+select -r Human_R_leg_ik__CA ;
+addAttr -ln "Pivotes"  -at double  -dv 0 |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA.Pivotes;
+addAttr -ln "Ankle"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA.Ankle;
+addAttr -ln "Toe"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA.Toe;
+addAttr -ln "End"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA.End;
+addAttr -ln "Roll"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA.Roll;
+addAttr -ln "TOES"  -at double  -dv 0 |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA.TOES;
+addAttr -ln "ToeX"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA.ToeX;
+addAttr -ln "ToeY"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA.ToeY;
+addAttr -ln "STRECHY"  -at double  -dv 0 |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA.STRECHY;
+addAttr -ln "StretchyUP"  -at double  -min -90 -max 90 -dv 1 |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA.StretchyUP;
+addAttr -ln "StretchyLW"  -at double  -min -90 -max 90 -dv 1 |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA.StretchyLW;
+
+select -r Human_R_leg_ik__CA ;
+
+setAttr -lock true "Human_R_leg_ik__CA.Pivotes";
+setAttr -lock true "Human_R_leg_ik__CA.TOES";
+setAttr -lock true "Human_R_leg_ik__CA.STRECHY";
+
+select -r Human_R_leg_ik__CA ;
+setAttr -lock true "Human_R_leg_ik__CA.sx";
+setAttr -lock true "Human_R_leg_ik__CA.sy";
+setAttr -lock true "Human_R_leg_ik__CA.sz";
+
+select -r Human_R_leg_pv__CA ;
+setAttr -lock true "Human_R_leg_pv__CA.rx";
+setAttr -lock true "Human_R_leg_pv__CA.ry";
+setAttr -lock true "Human_R_leg_pv__CA.rz";
+setAttr -lock true "Human_R_leg_pv__CA.sx";
+setAttr -lock true "Human_R_leg_pv__CA.sy";
+setAttr -lock true "Human_R_leg_pv__CA.sz";
+
+////////////////////////////////////////////// conectar atributos
+
+connectAttr -f Human_R_leg_ik__CA.Ankle Human_R_ankle__LOC.rotateZ;
+
+connectAttr -f Human_R_leg_ik__CA.Toe Human_R_toe__LOC.rotateZ;
+
+connectAttr -f Human_R_leg_ik__CA.End Human_R_toe_end__LOC.rotateX;
+
+connectAttr -f Human_R_leg_ik__CA.Roll Human_R_toe_end__LOC.rotateY;
+
+connectAttr -f Human_R_leg_ik__CA.ToeX Human_R_toe__LOC.rotateX;
+
+connectAttr -f Human_R_leg_ik__CA.ToeY Human_R_toe__LOC.rotateY;
+
+
+
+////////////////////////////////////////////// encuentra la escala que se le a dado al hueso en el paso anterior y se la transpasa al atributo
+float $scaleUP[] = `getAttr Human_R_upleg__JS.scale`;
+
+setAttr "Human_R_leg_ik__CA.StretchyUP" $scaleUP[0];
+
+
+connectAttr -f Human_R_leg_ik__CA.StretchyUP Human_R_upleg__JS.scaleX;
+// Result: Connected Human_R_leg_ik__CA.StretchyUP to Human_R_upleg__JS.scale.scaleX. //
+
+////////////////////////////////////////////// encuentra la escala que se le a dado al hueso en el paso anterior y se la transpasa al atributo
+
+float $scaleLW[] = `getAttr Human_R_lowleg__JS.scale`;
+
+setAttr "Human_R_leg_ik__CA.StretchyLW" $scaleLW[0];
+ 
+
+connectAttr -f Human_R_leg_ik__CA.StretchyLW Human_R_lowleg__JS.scaleX;
+// Result: Connected Human_R_leg_ik__CA.StretchyLW to Human_R_lowleg__JS.scale.scaleX. // 
+
+
+////////////////////////////////////////////// Freezea cadenas de huesos
+
+select -r Human_R_ankle__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_upleg__JS ;
+ds_rigLib_FRZGrps("");
+
+ 
+}
+
+
+    
+proc Pierna_FK(){
+
+ 
+//////////////////////////////////////////////IK FK
+//////////////////////////////////////////////
+    
+//////////////////////////////////////////////Crear atributos en los controladores
+
+addAttr -ln "IK_FK_Pierna"  -at long  -min 0 -max 1 -dv 0 |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_L_leg_ik__CAFRZ|Human_L_leg_ik__CA.IK_FK_Pierna;
+
+//////////////////////////////////////////////Crear controladores en tobillo, rodilla e ingle
+
+select -r Human_L_ankle__JS ;
+ds_rigTools_curveCreateWrapper("circleY");
+rename "circleY" "Human_L_ankle_fk__CA";
+
+select -r Human_L_lowleg__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_L_lowleg_fk__CA";
+
+select -r Human_L_upleg__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_L_upleg_fk__CA";
+
+rename makeNurbCircle1 "Human_L_ankle_fk__circle" ;
+rename makeNurbCircle2 "Human_L_lowleg_fk__circle" ;
+rename makeNurbCircle3 "Human_L_upleg_fk__circle" ;
+
+
+setAttr "Human_L_ankle_fk__circle.radius" 1.2;
+setAttr "Human_L_lowleg_fk__circle.radius" 1.2;
+setAttr "Human_L_upleg_fk__circle.radius" 1.2;
+
+ 
+//////////////////////////////////////////////crean contraint orient del hueso del pie al controlador fk del pie, esto hace que el hueso de la mano tenga 2 contrain de orientacion al mismo tiempo(AL CONTROLADOR IK Y AL CONTROLADOR FK)
+
+select -r Human_L_ankle_fk__CA ;
+select -tgl Human_L_ankle__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_L_ankle_fk__CA_orientConstraint1 // 
+
+select -r Human_L_lowleg_fk__CA ;
+select -tgl Human_L_lowleg__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_L_lowleg__JS_orientConstraint1 // 
+
+
+select -r Human_L_upleg_fk__CA ;
+select -tgl Human_L_upleg__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_L_upleg__JS_orientConstraint1 // 
+
+
+select -r Human_L_upleg__JS ;
+select -tgl Human_L_upleg_fk__CA;
+doCreatePointConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+pointConstraint -mo -weight 1;
+// Result: Human_L_upleg__JS_pointConstraint1 // 
+
+//////////////////////////////////////////////en la ventana set driven key creas una key con el atributo ik_fk(del conrolador ik fk) a 1 (le das "prioridad" al controlador ik y "desactivas" el fk) y otra key en el 0 (viceversa)
+
+select -r Human_L_ankle__JS ;
+setAttr "Human_L_leg_ik__CA.IK_FK_Pierna" 0;
+setAttr "Human_L_ankle__JS_orientConstraint1.Human_L_toe__LOCW0" 0;
+setAttr "Human_L_ankle__JS_orientConstraint1.Human_L_ankle_fk__CAW1" 1;
+
+setDrivenKeyframe -currentDriver Human_L_leg_ik__CA.IK_FK_Pierna Human_L_ankle__JS_orientConstraint1.Human_L_toe__LOCW0;
+setDrivenKeyframe -currentDriver Human_L_leg_ik__CA.IK_FK_Pierna Human_L_ankle__JS_orientConstraint1.Human_L_ankle_fk__CAW1;
+
+
+setAttr "Human_L_ankle__JS_orientConstraint1.offsetX" 0; 
+setAttr "Human_L_ankle__JS_orientConstraint1.offsetY" 0; 
+setAttr "Human_L_ankle__JS_orientConstraint1.offsetZ" 0; 
+
+setDrivenKeyframe -currentDriver Human_L_leg_ik__CA.IK_FK_Pierna Human_L_ankle__JS_orientConstraint1.offsetX;
+setDrivenKeyframe -currentDriver Human_L_leg_ik__CA.IK_FK_Pierna Human_L_ankle__JS_orientConstraint1.offsetY;
+setDrivenKeyframe -currentDriver Human_L_leg_ik__CA.IK_FK_Pierna Human_L_ankle__JS_orientConstraint1.offsetZ;
+
+
+setAttr "Human_L_leg_ik__CA.IK_FK_Pierna" 1;
+setAttr "Human_L_ankle__JS_orientConstraint1.Human_L_toe__LOCW0" 1;
+setAttr "Human_L_ankle__JS_orientConstraint1.Human_L_ankle_fk__CAW1" 0;
+
+
+
+setDrivenKeyframe -currentDriver Human_L_leg_ik__CA.IK_FK_Pierna Human_L_ankle__JS_orientConstraint1.Human_L_toe__LOCW0;
+setDrivenKeyframe -currentDriver Human_L_leg_ik__CA.IK_FK_Pierna Human_L_ankle__JS_orientConstraint1.Human_L_ankle_fk__CAW1;
+
+
+
+float $rot[] = `getAttr Human_L_ankle__JS.rotate`;
+$rot[2] = -$rot[2];
+$rot[1] = -$rot[1];
+$rot[0] = -$rot[0];
+setAttr "Human_L_ankle__JS_orientConstraint1.offsetZ" $rot[2]; 
+setAttr "Human_L_ankle__JS_orientConstraint1.offsetY" $rot[1]; 
+setAttr "Human_L_ankle__JS_orientConstraint1.offsetY" $rot[0]; 
+setDrivenKeyframe -currentDriver Human_L_leg_ik__CA.IK_FK_Pierna Human_L_ankle__JS_orientConstraint1.offsetZ;
+setDrivenKeyframe -currentDriver Human_L_leg_ik__CA.IK_FK_Pierna Human_L_ankle__JS_orientConstraint1.offsetY;
+setDrivenKeyframe -currentDriver Human_L_leg_ik__CA.IK_FK_Pierna Human_L_ankle__JS_orientConstraint1.offsetX;
+
+
+
+
+
+//////////////////////////////////////////////conecta el atributo ik fk del controlador del pie al--> atributo ik blend de la pierna
+connectAttr -f Human_L_leg_ik__CA.IK_FK_Pierna Human_L_leg_ikHandle.ikBlend;
+// Result: Connected Human_L_leg_ik__CA.IK_FK_Pierna to Human_L_leg_ikHandle.ikBlend. // 
+   
+ 
+ //////////////////////////////////////////////conecta el atributo ik fk del controlador de la mano al--> atributo visivilidad de los controladores de los codos y rodillas
+ 
+ shadingNode -asUtility reverse; //crea nodo reverse
+ rename reverse1 "Human_L_Leg_Ik_FK_reverse" ;
+// Result: Human_L_Arm_Ik_FK_reverse // 
+connectAttr -f Human_L_leg_ik__CA.IK_FK_Pierna Human_L_Leg_Ik_FK_reverse.inputX;
+// Result: Connected Human_L_arm_ik__CA.IK_FK_Brazo to Human_L_Arm_Ik_FK_reverse.input.inputX. // 
+
+
+connectAttr -f Human_L_Leg_Ik_FK_reverse.outputX Human_L_ankle_fk__CA.visibility;
+// Result: Connected Human_L_Arm_Ik_FK_reverse.output.outputX to Human_L_arm_fk_shoulder__CA.visibility. // 
+connectAttr -f Human_L_Leg_Ik_FK_reverse.outputX Human_L_lowleg_fk__CA.visibility;
+// Result: Connected Human_L_Arm_Ik_FK_reverse.output.outputX to Human_L_arm_fk_elbow__CA.visibility. // 
+connectAttr -f Human_L_Leg_Ik_FK_reverse.outputX Human_L_upleg_fk__CA.visibility;
+// Result: Connected Human_L_Arm_Ik_FK_reverse.output.outputX to Human_L_hand_fk_elbow__CA.visibility. // 
+
+//connectAttr -f Human_L_leg_ik__CA.IK_FK_Brazo Human_L_arm_ik__CA.visibility;
+
+connectAttr -f Human_L_leg_ik__CA.IK_FK_Pierna Human_L_leg_pv__CA.visibility;
+// Result: Connected Human_L_leg_ik__CA.IK_FK_Pierna to Human_L_leg_pv__CA.visibility. // 
+
+connectAttr -f Human_L_leg_ik__CA.IK_FK_Pierna Human_L_toe_end__LOC.visibility;
+connectAttr -f Human_L_leg_ik__CA.IK_FK_Pierna Human_L_toe__LOC.visibility;
+connectAttr -f Human_L_leg_ik__CA.IK_FK_Pierna Human_L_ankle__LOC.visibility;
+connectAttr -f Human_L_leg_ik__CA.IK_FK_Pierna Human_L_leg_ikHandle.visibility;
+
+
+////////////////////////////////////////////// emparenta entre si 
+
+
+select -r Human_L_upleg_fk__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_lowleg_fk__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_ankle_fk__CA ;
+ds_rigLib_FRZGrps("");
+ 
+parent grpHuman_L_lowleg_fk__CAFRZ Human_L_upleg__JS ;
+// Result: grpHuman_L_lowleg_fk__CAFRZ // 
+parent grpHuman_L_ankle_fk__CAFRZ Human_L_lowleg__JS ;
+// Result: grpHuman_L_ankle_fk__CAFRZ // 
+
+////////////////////////////////////////////// Grp freeze a las cadenas de huesos
+    
+select -r Human_L_Heel__JS ;
+ds_rigLib_FRZGrps("");
+      
+    
+select -cl -sym  ;   
+doGroup 0 1 1;
+select -r null1 ;
+rename "null1" "Human_L_Leg";
+// Result: Human_L_Leg // 
+   
+parent grpHuman_L_leg_pv__CAFRZ Human_L_Leg ;
+
+parent grpHuman_L_leg_ik__CAFRZ Human_L_Leg ;
+
+parent grpHuman_L_ankle__JSFRZ Human_L_Leg ;
+
+parent grpHuman_L_upleg__JSFRZ Human_L_Leg ;
+ 
+parent grpHuman_L_upleg_fk__CAFRZ Human_L_Leg ;
+    
+parent grpHuman_L_Heel__JSFRZ Human_L_Leg ;
+
+       
+   Clonar_Pierna_FK();
+    
+   
+    }//////////////////////////////////////////////FIN  
+
+
+
+
+
+    
+proc Clonar_Pierna_FK(){   
+
+//////////////////////////////////////////////IK FK
+//////////////////////////////////////////////
+    
+//////////////////////////////////////////////Crear atributos en los controladores
+
+addAttr -ln "IK_FK_Pierna"  -at long  -min 0 -max 1 -dv 0 |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA;
+setAttr -e-keyable true |grpHuman_R_leg_ik__CAFRZ|Human_R_leg_ik__CA.IK_FK_Pierna;
+
+//////////////////////////////////////////////Crear controladores en tobillo, rodilla e ingle
+
+select -r Human_R_ankle__JS ;
+ds_rigTools_curveCreateWrapper("circleY");
+rename "circleY" "Human_R_ankle_fk__CA";
+
+select -r Human_R_lowleg__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_R_lowleg_fk__CA";
+
+select -r Human_R_upleg__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_R_upleg_fk__CA";
+
+rename makeNurbCircle1 "Human_R_ankle_fk__circle" ;
+rename makeNurbCircle2 "Human_R_lowleg_fk__circle" ;
+rename makeNurbCircle3 "Human_R_upleg_fk__circle" ;
+
+
+setAttr "Human_R_ankle_fk__circle.radius" 1.2;
+setAttr "Human_R_lowleg_fk__circle.radius" 1.2;
+setAttr "Human_R_upleg_fk__circle.radius" 1.2;
+
+ 
+//////////////////////////////////////////////crean contraint orient del hueso del pie al controlador fk del pie, esto hace que el hueso de la mano tenga 2 contrain de orientacion al mismo tiempo(AL CONTROLADOR IK Y AL CONTROLADOR FK)
+
+select -r Human_R_ankle_fk__CA ;
+select -tgl Human_R_ankle__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0orient","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_R_ankle_fk__CA_orientConstraint1 // 
+
+select -r Human_R_lowleg_fk__CA ;
+select -tgl Human_R_lowleg__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_R_lowleg__JS_orientConstraint1 // 
+
+
+select -r Human_R_upleg_fk__CA ;
+select -tgl Human_R_upleg__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_R_upleg__JS_orientConstraint1 // 
+
+
+select -r Human_R_upleg__JS ;
+select -tgl Human_R_upleg_fk__CA;
+doCreatePointConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+pointConstraint -mo -weight 1;
+// Result: Human_R_upleg__JS_pointConstraint1 // 
+
+//////////////////////////////////////////////en la ventana set driven key creas una key con el atributo ik_fk(del conrolador ik fk) a 1 (le das "prioridad" al controlador ik y "desactivas" el fk) y otra key en el 0 (viceversa)
+
+select -r Human_R_ankle__JS ;
+setAttr "Human_R_leg_ik__CA.IK_FK_Pierna" 0;
+setAttr "Human_R_ankle__JS_orientConstraint1.Human_R_toe__LOCW0" 0;
+setAttr "Human_R_ankle__JS_orientConstraint1.Human_R_ankle_fk__CAW1" 1;
+
+setDrivenKeyframe -currentDriver Human_R_leg_ik__CA.IK_FK_Pierna Human_R_ankle__JS_orientConstraint1.Human_R_toe__LOCW0;
+setDrivenKeyframe -currentDriver Human_R_leg_ik__CA.IK_FK_Pierna Human_R_ankle__JS_orientConstraint1.Human_R_ankle_fk__CAW1;
+
+
+
+setAttr "Human_R_ankle__JS_orientConstraint1.offsetX" 0; 
+setAttr "Human_R_ankle__JS_orientConstraint1.offsetY" 0; 
+setAttr "Human_R_ankle__JS_orientConstraint1.offsetZ" 0; 
+
+setDrivenKeyframe -currentDriver Human_R_leg_ik__CA.IK_FK_Pierna Human_R_ankle__JS_orientConstraint1.offsetX;
+setDrivenKeyframe -currentDriver Human_R_leg_ik__CA.IK_FK_Pierna Human_R_ankle__JS_orientConstraint1.offsetY;
+setDrivenKeyframe -currentDriver Human_R_leg_ik__CA.IK_FK_Pierna Human_R_ankle__JS_orientConstraint1.offsetZ;
+
+
+setAttr "Human_R_leg_ik__CA.IK_FK_Pierna" 1;
+setAttr "Human_R_ankle__JS_orientConstraint1.Human_R_toe__LOCW0" 1;
+setAttr "Human_R_ankle__JS_orientConstraint1.Human_R_ankle_fk__CAW1" 0;
+
+
+
+setDrivenKeyframe -currentDriver Human_R_leg_ik__CA.IK_FK_Pierna Human_R_ankle__JS_orientConstraint1.Human_R_toe__LOCW0;
+setDrivenKeyframe -currentDriver Human_R_leg_ik__CA.IK_FK_Pierna Human_R_ankle__JS_orientConstraint1.Human_R_ankle_fk__CAW1;
+
+
+
+float $rot[] = `getAttr Human_R_ankle__JS.rotate`;
+$rot[2] = -$rot[2];
+$rot[1] = -$rot[1];
+$rot[0] = -$rot[0];
+setAttr "Human_R_ankle__JS_orientConstraint1.offsetZ" $rot[2];
+setAttr "Human_R_ankle__JS_orientConstraint1.offsetY" $rot[1]; 
+setAttr "Human_R_ankle__JS_orientConstraint1.offsetY" $rot[0]; 
+setDrivenKeyframe -currentDriver Human_R_leg_ik__CA.IK_FK_Pierna Human_R_ankle__JS_orientConstraint1.offsetZ;
+setDrivenKeyframe -currentDriver Human_R_leg_ik__CA.IK_FK_Pierna Human_R_ankle__JS_orientConstraint1.offsetY;
+setDrivenKeyframe -currentDriver Human_R_leg_ik__CA.IK_FK_Pierna Human_R_ankle__JS_orientConstraint1.offsetX;
+//////////////////////////////////////////////conecta el atributo ik fk del controlador del pie al--> atributo ik blend de la pierna
+connectAttr -f Human_R_leg_ik__CA.IK_FK_Pierna Human_R_leg_ikHandle.ikBlend;
+// Result: Connected Human_R_leg_ik__CA.IK_FK_Pierna to Human_R_leg_ikHandle.ikBlend. // 
+   
+ //////////////////////////////////////////////conecta el atributo ik fk del controlador de la mano al--> atributo visivilidad de los controladores de los codos y rodillas
+ 
+ shadingNode -asUtility reverse; //crea nodo reverse
+ rename reverse1 "Human_R_Leg_Ik_FK_reverse" ;
+// Result: Human_R_Arm_Ik_FK_reverse // 
+connectAttr -f Human_R_leg_ik__CA.IK_FK_Pierna Human_R_Leg_Ik_FK_reverse.inputX;
+// Result: Connected Human_R_arm_ik__CA.IK_FK_Brazo to Human_R_Arm_Ik_FK_reverse.input.inputX. // 
+
+
+connectAttr -f Human_R_Leg_Ik_FK_reverse.outputX Human_R_ankle_fk__CA.visibility;
+// Result: Connected Human_R_Arm_Ik_FK_reverse.output.outputX to Human_R_arm_fk_shoulder__CA.visibility. // 
+connectAttr -f Human_R_Leg_Ik_FK_reverse.outputX Human_R_lowleg_fk__CA.visibility;
+// Result: Connected Human_R_Arm_Ik_FK_reverse.output.outputX to Human_R_arm_fk_elbow__CA.visibility. // 
+connectAttr -f Human_R_Leg_Ik_FK_reverse.outputX Human_R_upleg_fk__CA.visibility;
+// Result: Connected Human_R_Arm_Ik_FK_reverse.output.outputX to Human_R_hand_fk_elbow__CA.visibility. // 
+
+//connectAttr -f Human_R_leg_ik__CA.IK_FK_Brazo Human_R_arm_ik__CA.visibility;
+
+connectAttr -f Human_R_leg_ik__CA.IK_FK_Pierna Human_R_leg_pv__CA.visibility;
+// Result: Connected Human_R_leg_ik__CA.IK_FK_Pierna to Human_R_leg_pv__CA.visibility. // 
+
+connectAttr -f Human_R_leg_ik__CA.IK_FK_Pierna Human_R_toe_end__LOC.visibility;
+connectAttr -f Human_R_leg_ik__CA.IK_FK_Pierna Human_R_toe__LOC.visibility;
+connectAttr -f Human_R_leg_ik__CA.IK_FK_Pierna Human_R_ankle__LOC.visibility;
+connectAttr -f Human_R_leg_ik__CA.IK_FK_Pierna Human_R_leg_ikHandle.visibility;
+
+
+////////////////////////////////////////////// emparenta entre si 
+
+
+select -r Human_R_upleg_fk__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_lowleg_fk__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_ankle_fk__CA ;
+ds_rigLib_FRZGrps("");
+ 
+parent grpHuman_R_lowleg_fk__CAFRZ Human_R_upleg__JS ;
+// Result: grpHuman_R_lowleg_fk__CAFRZ // 
+parent grpHuman_R_ankle_fk__CAFRZ Human_R_lowleg__JS ;
+// Result: grpHuman_R_ankle_fk__CAFRZ // 
+
+
+
+
+////////////////////////////////////////////// Grp freeze a las cadenas de huesos
+    
+select -r Human_R_Heel__JS ;
+ds_rigLib_FRZGrps("");
+    
+select -cl -sym  ;   
+doGroup 0 1 1;
+select -r null1 ;
+rename "null1" "Human_R_Leg";
+// Result: Human_R_Leg // 
+   
+parent grpHuman_R_leg_pv__CAFRZ Human_R_Leg ;
+
+parent grpHuman_R_leg_ik__CAFRZ Human_R_Leg ;
+
+parent grpHuman_R_ankle__JSFRZ Human_R_Leg ;
+
+parent grpHuman_R_upleg__JSFRZ Human_R_Leg ;
+ 
+parent grpHuman_R_upleg_fk__CAFRZ Human_R_Leg ;
+
+parent grpHuman_R_Heel__JSFRZ Human_R_Leg ;
+    
+    
+select -r Human_R_ankle__JS ;
+setAttr "Human_R_ankle__JS.rotateZ" 0;     
+setAttr "Human_R_ankle__JS.rotateY" 0;
+setAttr "Human_R_ankle__JS.rotateX" 0;
+
+select -r -sym Human_R_Toe__JS ;
+setAttr "Human_R_Toe__JS.rotateZ" 0;
+setAttr "Human_R_Toe__JS.rotateX" 0;
+setAttr "Human_R_Toe__JS.rotateY" 0;
+
+////////////////////////////////////////////// para que el pivote de la rodilla se mueva mas chachi
+    
+
+
+setAttr "grpHuman_L_leg_pv__CAFRZ.scaleX" -1; 
+setAttr "grpHuman_L_leg_pv__CAFRZ.scaleY" -1; 
+setAttr "grpHuman_L_leg_pv__CAFRZ.scaleZ" -1; 
+    
+ 
+    }
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+//            ______                    
+//            | ___ \                   
+//            | |_/ /_ __ __ _ _______  
+//            | ___ \ '__/ _` |_  / _ \ 
+//            | |_/ / | | (_| |/ / (_) |
+//            \____/|_|  \__,_/___\___/ 
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+
+
+proc Posicionar_Brazo() {
+    
+    ////////////////////////////////////////////// Se crean las cadenas de huesos y se posicionan (rotando y escalando NO MOVIENDO)
+select -cl  ;
+joint -p 0.779 10.492 -0.374 ;
+joint -p 2.66 10.143 -1.175 ;
+joint -e -zso -oj xyz -sao yup joint1;
+rename "joint1" "Human_L_clavicule__JS";
+
+joint -p 7.227 8.058 -1.851 ;
+joint -e -zso -oj xyz -sao yup joint2;
+rename "joint2" "Human_L_shoulder__JS";
+
+joint -p 10.755 6.126 -1.377 ;
+joint -e -zso -oj xyz -sao yup joint3;
+rename "joint3" "Human_L_elbow__JS";
+
+joint -p 12.003 5.607 -1.287 ;
+joint -e -zso -oj xyz -sao yup joint4;
+rename "joint4" "Human_L_hand__JS";
+rename "joint5" "Human_L_hand_End__JS";
+    
+    }//////////////////////////////////////////////FIN
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+ proc Clonar_Posicionar_Brazo() { 
+ 
+    //////////////////////////////////////////////clonas cadena de huesos (skeleton mirror --> mirror YZ)
+      
+ select -r Human_L_clavicule__JS ;
+mirrorJoint -mirrorYZ -mirrorBehavior -searchReplace "_L" "_R";
+
+//////////////////////////////////////////////Freeze Transformations (resetea rotaciones y escalas)
+
+select -r Human_L_clavicule__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+select -r Human_R_clavicule__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+    
+ }//////////////////////////////////////////////FIN
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+proc Brazo_IK() {
+    
+    Clonar_Posicionar_Brazo();
+    
+//////////////////////////////////////////////clonas cadena de huesos (skeleton mirror --> mirror YZ)
+
+//////////////////////////////////////////////Freeze Transformations (resetea rotaciones y escalas)
+    
+////////////////////////////////////////////// Se desconectan las cadenas del hombro y la muñeca
+
+select -r Human_L_shoulder__JS ;
+select -tgl Human_L_hand__JS ;
+DisconnectJoint;
+
+select -r Human_L_shoulder__JS ;
+select -tgl Human_L_hand__JS ;
+setAttr "Human_L_hand__JS.radius" 1.2;
+setAttr "Human_L_shoulder__JS.radius" 1.2;
+
+select -r joint1 ;
+select -tgl joint2 ;
+setAttr "joint1.radius" 0.6;
+setAttr "joint2.radius" 0.6;
+
+rename "joint1" "Human_L_shoulder_End__JS";
+rename "joint2" "Human_L_elbow_End__JS";
+
+//////////////////////////////////////////////Conjelar posiciones 
+
+select -r -sym Human_L_shoulder__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+select -r -sym Human_L_hand__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;  
+
+
+//////////////////////////////////////////////Crear el ik del brazo (modo rotate)
+
+select -r Human_L_shoulder__JS.rotatePivot ;
+select -tgl Human_L_elbow_End__JS.rotatePivot ;
+ikHandle -sol ikRPsolver;
+// Result: Human_L_Arm_ikHandle effector1 // 
+rename "ikHandle1" "Human_L_Arm_ikHandle";
+
+//////////////////////////////////////////////Crear Controlador Del Codo (IMPORTANTE!!!) Alinear el pivote con el Codo
+
+select -r Human_L_elbow__JS ;
+ds_rigTools_curveCreateWrapper("sphere");
+rename "sphere" "Human_L_arm_pv__CA";
+ds_rigLib_FRZGrps("");
+
+//////////////////////////////////////////////Constrain pole vector del pivote del codo al ik
+
+select -r Human_L_arm_pv__CA ;
+select -tgl Human_L_Arm_ikHandle ;
+poleVectorConstraint -weight 1;
+// Result: Human_L_Arm_ikHandle_poleVectorConstraint1 // 
+
+ Clonar_Brazo_IK();
+ 
+    }//////////////////////////////////////////////FIN
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////// 
+
+
+proc Clonar_Brazo_IK() {
+   
+   
+////////////////////////////////////////////// Se desconectan las cadenas del hombro y la muñeca
+
+select -r Human_R_shoulder__JS ;
+select -tgl Human_R_hand__JS ;
+DisconnectJoint;
+
+select -r Human_R_shoulder__JS ;
+select -tgl Human_R_hand__JS ;
+setAttr "Human_R_hand__JS.radius" 1.2;
+setAttr "Human_R_shoulder__JS.radius" 1.2;
+
+select -r joint1 ;
+select -tgl joint2 ;
+setAttr "joint1.radius" 0.6;
+setAttr "joint2.radius" 0.6;
+
+rename "joint1" "Human_R_shoulder_End__JS";
+rename "joint2" "Human_R_elbow_End__JS";
+
+//////////////////////////////////////////////Conjelar posiciones 
+
+select -r -sym Human_R_shoulder__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+select -r -sym Human_R_hand__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;  
+
+
+//////////////////////////////////////////////Crear el ik del brazo (modo rotate)
+
+select -r Human_R_shoulder__JS.rotatePivot ;
+select -tgl Human_R_elbow_End__JS.rotatePivot ;
+ikHandle -sol ikRPsolver;
+// Result: Human_R_Arm_ikHandle effector1 // 
+rename "ikHandle1" "Human_R_Arm_ikHandle";
+
+//////////////////////////////////////////////Crear Controlador Del Codo (IMPORTANTE!!!) Alinear el pivote con el Codo
+
+select -r Human_R_elbow__JS ;
+ds_rigTools_curveCreateWrapper("sphere");
+rename "sphere" "Human_R_arm_pv__CA";
+ds_rigLib_FRZGrps("");
+
+//////////////////////////////////////////////Constrain pole vector del pivote del codo al ik
+
+select -r Human_R_arm_pv__CA ;
+select -tgl Human_R_Arm_ikHandle ;
+poleVectorConstraint -weight 1;
+// Result: Human_R_Arm_ikHandle_poleVectorConstraint1 // 
+
+
+}//////////////////////////////////////////////FIN
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////// 
+
+  
+proc Master_Mano() {
+    
+    
+ //////////////////////////////////////////////Crear Controlador De la mano
+
+select -r Human_L_hand__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_L_arm_ik__CA";
+ds_rigLib_FRZGrps("");   
+    
+ //////////////////////////////////////////////Crear Contrain point del hueso end a la mano 
+
+select -cl  ;
+select -r Human_L_elbow_End__JS ;
+select -tgl Human_L_hand__JS ;
+doCreatePointConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+pointConstraint -mo -weight 1;
+// Result: Human_L_hand__JS_pointConstraint1 //    
+
+//////////////////////////////////////////////Crear Contrain Point del IK al control de la mano
+
+select -r Human_L_arm_ik__CA ;
+select -tgl Human_L_Arm_ikHandle ;
+doCreatePointConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+pointConstraint -mo -weight 1;
+// Result: Human_L_Arm_ikHandle_pointConstraint1 // 
+
+
+//////////////////////////////////////////////Crear Contrain Orient del IK al control de la mano
+
+select -cl  ;
+select -r Human_L_arm_ik__CA ;
+select -tgl Human_L_Arm_ikHandle ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_L_Arm_ikHandle_orientConstraint1 // 
+
+//////////////////////////////////////////////Crear Contrain Orient del hueso de la mano al control de la mano
+
+select -cl  ;
+select -r Human_L_arm_ik__CA ;
+select -tgl Human_L_hand__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_L_hand__JS_orientConstraint1 // 
+
+
+    
+   //////////////////////////////////////////////Crear Contrain point del hueso end de la clavicula al hueso del hombro
+
+select -r Human_L_shoulder_End__JS ;
+select -tgl Human_L_shoulder__JS ;
+doCreatePointConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+pointConstraint -mo -weight 1;
+// Result: Human_L_shoulder__JS_pointConstraint1 // 
+
+//////////////////////////////////////////////Crear Control del hombro(IMPORTANTE!!!) Alinear el pivote con la clavicula  y GRP freeze
+
+select -r Human_L_clavicule__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_L_arm_clavicule__CA";
+
+scale -r 2 2 2 ;
+hilite Human_L_arm_clavicule__CA ;
+select -r Human_L_arm_clavicule__CA.cv[0:7] ;
+move -r -os -wd 0.5 0 0 ;
+
+select -r Human_L_arm_clavicule__CA.cv[4:6] ;
+move -r -os -wd 0 1 0 ;
+
+select -r Human_L_arm_clavicule__CA.cv[5] ;
+move -r -os -wd 0 0.6 ;
+
+hilite -u Human_L_arm_clavicule__CA ;
+select -r Human_L_arm_clavicule__CA ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+ds_rigLib_FRZGrps("");
+
+
+
+//////////////////////////////////////////////Contraint Parent Del controlador del hombro al hueso de la clavicula
+
+select -r Human_L_arm_clavicule__CA ;
+select -tgl Human_L_clavicule__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_L_clavicule__JS_parentConstraint1 // 
+
+
+    Clonar_Master_Mano();
+     
+  
+    }
+    
+    
+    
+    
+proc Clonar_Master_Mano(){
+    
+    //////////////////////////////////////////////Crear Controlador De la mano
+
+select -r Human_R_hand__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_R_arm_ik__CA";
+ds_rigLib_FRZGrps("");   
+    
+ //////////////////////////////////////////////Crear Contrain point del hueso end a la mano 
+
+select -cl  ;
+select -r Human_R_elbow_End__JS ;
+select -tgl Human_R_hand__JS ;
+doCreatePointConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+pointConstraint -mo -weight 1;
+// Result: Human_R_hand__JS_pointConstraint1 //    
+
+//////////////////////////////////////////////Crear Contrain Point del IK al control de la mano
+
+select -r Human_R_arm_ik__CA ;
+select -tgl Human_R_Arm_ikHandle ;
+doCreatePointConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+pointConstraint -mo -weight 1;
+// Result: Human_R_Arm_ikHandle_pointConstraint1 // 
+
+
+//////////////////////////////////////////////Crear Contrain Orient del IK al control de la mano
+
+select -cl  ;
+select -r Human_R_arm_ik__CA ;
+select -tgl Human_R_Arm_ikHandle ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_R_Arm_ikHandle_orientConstraint1 // 
+
+//////////////////////////////////////////////Crear Contrain Orient del hueso de la mano al control de la mano
+
+select -cl  ;
+select -r Human_R_arm_ik__CA ;
+select -tgl Human_R_hand__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_R_hand__JS_orientConstraint1 // 
+
+
+    
+   //////////////////////////////////////////////Crear Contrain point del hueso end de la clavicula al hueso del hombro
+
+select -r Human_R_shoulder_End__JS ;
+select -tgl Human_R_shoulder__JS ;
+doCreatePointConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+pointConstraint -mo -weight 1;
+// Result: Human_R_shoulder__JS_pointConstraint1 // 
+
+//////////////////////////////////////////////Crear Control del hombro(IMPORTANTE!!!) Alinear el pivote con el CODO  y GRP freeze
+
+select -r Human_R_clavicule__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_R_arm_clavicule__CA";
+
+scale -r 2 -2 2 ;
+hilite Human_R_arm_clavicule__CA ;
+select -r Human_R_arm_clavicule__CA.cv[0:7] ;
+move -r -os -wd -0.5 0 0 ;
+
+select -r Human_R_arm_clavicule__CA.cv[4:6] ;
+move -r -os -wd 0 1 0 ;
+
+select -r Human_R_arm_clavicule__CA.cv[5] ;
+move -r -os -wd 0 0.6 ;
+
+hilite -u Human_R_arm_clavicule__CA ;
+select -r Human_R_arm_clavicule__CA ;
+
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
+ds_rigLib_FRZGrps("");
+
+
+//////////////////////////////////////////////Contraint Parent Del controlador del hombro al hueso de la clavicula
+
+select -r Human_R_arm_clavicule__CA ;
+select -tgl Human_R_clavicule__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_R_clavicule__JS_parentConstraint1 // 
+
+
+
+Freeze();
+ 
+}///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+    
+ 
+proc Freeze(){
+    
+   
+    
+//////////////////////////////////////////////GRP frezze 
+
+select -r Human_L_clavicule__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_Arm_ikHandle ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_hand__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_shoulder__JS ;
+ds_rigLib_FRZGrps("");
+
+select -r Human_R_clavicule__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_Arm_ikHandle ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_hand__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_shoulder__JS ;
+ds_rigLib_FRZGrps("");
+
+    
+select -r   grpHuman_R_arm_pv__CAFRZ ;
+select -add grpHuman_L_arm_pv__CAFRZ ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1; 
+
+
+    
+}///////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////// 
+
+
+
+proc Brazo_FK(){
+    
+//////////////////////////////////////////////IK FK
+//////////////////////////////////////////////
+    
+//////////////////////////////////////////////Crear atributos en los controladores
+
+
+addAttr -ln "IK_FK_Brazo"  -at long  -min 0 -max 1 -dv 0 |grpHuman_L_arm_clavicule__CAFRZ|Human_L_arm_clavicule__CA;
+setAttr -e-keyable true |grpHuman_L_arm_clavicule__CAFRZ|Human_L_arm_clavicule__CA.IK_FK_Brazo;
+
+
+//////////////////////////////////////////////Crear controladores en codo y hombro 
+select -r Human_L_elbow__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_L_arm_fk_elbow__CA";
+select -r Human_L_shoulder__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_L_arm_fk_shoulder__CA";
+select -r Human_L_hand__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_L_arm_fk_hand__CA";
+
+rename makeNurbCircle5 "Human_L_arm_fk_elbow__circle" ;
+rename makeNurbCircle6 "Human_L_arm_fk_shoulder__circle" ;
+rename makeNurbCircle7 "Human_L_arm_fk_hand__circle";
+// Result: Human_L_arm_fk_elbow__CA1 // 
+setAttr "Human_L_arm_fk_elbow__circle.radius" 1.2;
+setAttr "Human_L_arm_fk_shoulder__circle.radius" 1.2;
+setAttr "Human_L_arm_fk_hand__circle.radius" 1.2;
+
+//////////////////////////////////////////////crean contraint orient del hueso de la mano al controlador fk de la mano, esto hace que el hueso de la mano tenga 2 contrain de orientacion al mismo tiempo(AL CONTROLADOR IK Y AL CONTROLADOR FK)
+select -r Human_L_arm_fk_hand__CA ;
+select -tgl Human_L_hand__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_L_hand__JS_orientConstraint1 // 
+
+//////////////////////////////////////////////en la ventana set driven key creas una key con el atributo ik_fk(del conrolador ik fk) a 1 (le das "prioridad" al controlador ik y "desactivas" el fk) y otra key en el 0 (viceversa)
+
+select -r Human_L_hand__JS ;
+setAttr "Human_L_hand__JS_orientConstraint1.Human_L_arm_ik__CAW0" 0;
+
+setDrivenKeyframe -currentDriver Human_L_arm_clavicule__CA.IK_FK_Brazo Human_L_hand__JS_orientConstraint1.Human_L_arm_ik__CAW0;
+// Result: 1 // 
+setDrivenKeyframe -currentDriver Human_L_arm_clavicule__CA.IK_FK_Brazo Human_L_hand__JS_orientConstraint1.Human_L_arm_fk_hand__CAW1;
+// Result: 1 // 
+
+setAttr "Human_L_arm_clavicule__CA.IK_FK_Brazo" 1;
+select -r Human_L_hand__JS ;
+setAttr "Human_L_hand__JS_orientConstraint1.Human_L_arm_ik__CAW0" 1;
+setAttr "Human_L_hand__JS_orientConstraint1.Human_L_arm_fk_hand__CAW1" 0;
+setDrivenKeyframe -currentDriver Human_L_arm_clavicule__CA.IK_FK_Brazo Human_L_hand__JS_orientConstraint1.Human_L_arm_ik__CAW0;
+// Result: 1 // 
+setDrivenKeyframe -currentDriver Human_L_arm_clavicule__CA.IK_FK_Brazo Human_L_hand__JS_orientConstraint1.Human_L_arm_fk_hand__CAW1;
+// Result: 1 // 
+    
+//////////////////////////////////////////////conecta el atributo ik fk del controlador de la mano al--> atributo ik blend del brazo
+   
+connectAttr -f Human_L_arm_clavicule__CA.IK_FK_Brazo Human_L_Arm_ikHandle.ikBlend;
+// Result: Connected Human_L_arm_ik__CA.IK_FK_Brazo to Human_L_Arm_ikHandle.ikFkManipulation. // 
+
+ //////////////////////////////////////////////conecta el atributo ik fk del controlador de la mano al--> atributo visivilidad de los controladores de los codos y rodillas
+ 
+ shadingNode -asUtility reverse; //crea nodo reverse
+ rename reverse1 "Human_L_Arm_Ik_FK_reverse" ;
+// Result: Human_L_Arm_Ik_FK_reverse // 
+ connectAttr -f Human_L_arm_clavicule__CA.IK_FK_Brazo Human_L_Arm_Ik_FK_reverse.inputX;
+
+connectAttr -f Human_L_Arm_Ik_FK_reverse.outputX Human_L_arm_fk_shoulder__CA.visibility;
+// Result: Connected Human_L_Arm_Ik_FK_reverse.output.outputX to Human_L_arm_fk_shoulder__CA.visibility. // 
+connectAttr -f Human_L_Arm_Ik_FK_reverse.outputX Human_L_arm_fk_elbow__CA.visibility;
+// Result: Connected Human_L_Arm_Ik_FK_reverse.output.outputX to Human_L_arm_fk_elbow__CA.visibility. // 
+connectAttr -f Human_L_Arm_Ik_FK_reverse.outputX Human_L_arm_fk_hand__CA.visibility;
+// Result: Connected Human_L_Arm_Ik_FK_reverse.output.outputX to Human_L_hand_fk_elbow__CA.visibility. // 
+
+connectAttr -f Human_L_arm_clavicule__CA.IK_FK_Brazo Human_L_arm_ik__CA.visibility;
+// Result: Connected Human_L_arm_clavicule__CA.IK_FK_Brazo to Human_L_arm_ik__CA.visibility. // 
+connectAttr -f Human_L_arm_clavicule__CA.IK_FK_Brazo Human_L_arm_pv__CA.visibility;
+// Result: Connected Human_L_arm_clavicule__CA.IK_FK_Brazo to Human_L_arm_pv__CA.visibility. // 
+
+
+
+ //////////////////////////////////////////////crean contraint orient del controlador hombro al hueso del hombro  Y emparenta entre si 
+ select -r Human_L_arm_fk_shoulder__CA ;
+select -tgl Human_L_shoulder__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_L_shoulder__JS_orientConstraint1 // 
+
+select -r Human_L_arm_fk_elbow__CA ;
+select -tgl Human_L_elbow__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_L_elbow__JS_orientConstraint1 //
+
+select -r Human_L_arm_fk_shoulder__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_arm_fk_elbow__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_arm_fk_hand__CA ;
+ds_rigLib_FRZGrps("");
+ 
+parent grpHuman_L_arm_fk_shoulder__CAFRZ Human_L_clavicule__JS ;
+parent grpHuman_L_arm_fk_elbow__CAFRZ Human_L_shoulder__JS ;
+parent grpHuman_L_arm_fk_hand__CAFRZ Human_L_elbow__JS ;
+
+////////////////////////////////////////////// Grp freeze a las cadenas de huesos
+
+select -cl -sym  ;   
+doGroup 0 1 1;
+select -r null1 ;
+rename "null1" "Human_L_Arm";
+// Result: Human_L_Arm // 
+
+
+parent grpHuman_L_arm_pv__CAFRZ Human_L_Arm ;
+parent grpHuman_L_arm_ik__CAFRZ Human_L_Arm ;
+parent grpHuman_L_arm_clavicule__CAFRZ Human_L_Arm ;
+parent grpHuman_L_clavicule__JSFRZ Human_L_Arm ;
+parent grpHuman_L_Arm_ikHandleFRZ Human_L_Arm ;
+parent grpHuman_L_hand__JSFRZ Human_L_Arm ;
+parent grpHuman_L_shoulder__JSFRZ Human_L_Arm ;
+
+
+
+Clonar_Brazo_FK();
+
+
+
+}//////////////////////////////////////////////FIN
+
+
+
+
+
+proc Clonar_Brazo_FK(){
+       
+//////////////////////////////////////////////IK FK
+//////////////////////////////////////////////
+    
+//////////////////////////////////////////////Crear atributos en los controladores
+
+
+addAttr -ln "IK_FK_Brazo"  -at long  -min 0 -max 1 -dv 0 |grpHuman_R_arm_clavicule__CAFRZ|Human_R_arm_clavicule__CA;
+setAttr -e-keyable true |grpHuman_R_arm_clavicule__CAFRZ|Human_R_arm_clavicule__CA.IK_FK_Brazo;
+
+
+//////////////////////////////////////////////Crear controladores en codo y hombro 
+select -r Human_R_elbow__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_R_arm_fk_elbow__CA";
+select -r Human_R_shoulder__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_R_arm_fk_shoulder__CA";
+select -r Human_R_hand__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_R_arm_fk_hand__CA";
+
+rename makeNurbCircle5 "Human_R_arm_fk_elbow__circle" ;
+rename makeNurbCircle6 "Human_R_arm_fk_shoulder__circle" ;
+rename makeNurbCircle7 "Human_R_arm_fk_hand__circle";
+
+setAttr "Human_R_arm_fk_elbow__circle.radius" 1.2;
+setAttr "Human_R_arm_fk_shoulder__circle.radius" 1.2;
+setAttr "Human_R_arm_fk_hand__circle.radius" 1.2;
+
+
+//////////////////////////////////////////////crean contraint orient del hueso de la mano al controlador fk de la mano, esto hace que el hueso de la mano tenga 2 contrain de orientacion al mismo tiempo(AL CONTROLADOR IK Y AL CONTROLADOR FK)
+select -r Human_R_arm_fk_hand__CA ;
+select -tgl Human_R_hand__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_R_hand__JS_orientConstraint1 // 
+
+//////////////////////////////////////////////en la ventana set driven key creas una key con el atributo ik_fk(del conrolador ik fk) a 1 (le das "prioridad" al controlador ik y "desactivas" el fk) y otra key en el 0 (viceversa)
+
+select -r Human_R_hand__JS ;
+setAttr "Human_R_hand__JS_orientConstraint1.Human_R_arm_ik__CAW0" 0;
+
+setDrivenKeyframe -currentDriver Human_R_arm_clavicule__CA.IK_FK_Brazo Human_R_hand__JS_orientConstraint1.Human_R_arm_ik__CAW0;
+// Result: 1 // 
+setDrivenKeyframe -currentDriver Human_R_arm_clavicule__CA.IK_FK_Brazo Human_R_hand__JS_orientConstraint1.Human_R_arm_fk_hand__CAW1;
+// Result: 1 // 
+
+setAttr "Human_R_arm_clavicule__CA.IK_FK_Brazo" 1;
+select -r Human_R_hand__JS ;
+setAttr "Human_R_hand__JS_orientConstraint1.Human_R_arm_ik__CAW0" 1;
+setAttr "Human_R_hand__JS_orientConstraint1.Human_R_arm_fk_hand__CAW1" 0;
+setDrivenKeyframe -currentDriver Human_R_arm_clavicule__CA.IK_FK_Brazo Human_R_hand__JS_orientConstraint1.Human_R_arm_ik__CAW0;
+// Result: 1 // 
+setDrivenKeyframe -currentDriver Human_R_arm_clavicule__CA.IK_FK_Brazo Human_R_hand__JS_orientConstraint1.Human_R_arm_fk_hand__CAW1;
+// Result: 1 // 
+    
+//////////////////////////////////////////////conecta el atributo ik fk del controlador de la mano al--> atributo ik blend del brazo
+   
+connectAttr -f Human_R_arm_clavicule__CA.IK_FK_Brazo Human_R_Arm_ikHandle.ikBlend;
+// Result: Connected Human_R_arm_ik__CA.IK_FK_Brazo to Human_R_Arm_ikHandle.ikFkManipulation. // 
+
+ //////////////////////////////////////////////conecta el atributo ik fk del controlador de la mano al--> atributo visivilidad de los controladores de los codos y rodillas
+ 
+ shadingNode -asUtility reverse; //crea nodo reverse
+ rename reverse1 "Human_R_Arm_Ik_FK_reverse" ;
+// Result: Human_R_Arm_Ik_FK_reverse // 
+ connectAttr -f Human_R_arm_clavicule__CA.IK_FK_Brazo Human_R_Arm_Ik_FK_reverse.inputX;
+
+connectAttr -f Human_R_Arm_Ik_FK_reverse.outputX Human_R_arm_fk_shoulder__CA.visibility;
+// Result: Connected Human_R_Arm_Ik_FK_reverse.output.outputX to Human_R_arm_fk_shoulder__CA.visibility. // 
+connectAttr -f Human_R_Arm_Ik_FK_reverse.outputX Human_R_arm_fk_elbow__CA.visibility;
+// Result: Connected Human_R_Arm_Ik_FK_reverse.output.outputX to Human_R_arm_fk_elbow__CA.visibility. // 
+connectAttr -f Human_R_Arm_Ik_FK_reverse.outputX Human_R_arm_fk_hand__CA.visibility;
+// Result: Connected Human_R_Arm_Ik_FK_reverse.output.outputX to Human_R_hand_fk_elbow__CA.visibility. // 
+
+connectAttr -f Human_R_arm_clavicule__CA.IK_FK_Brazo Human_R_arm_ik__CA.visibility;
+// Result: Connected Human_R_arm_clavicule__CA.IK_FK_Brazo to Human_R_arm_ik__CA.visibility. // 
+connectAttr -f Human_R_arm_clavicule__CA.IK_FK_Brazo Human_R_arm_pv__CA.visibility;
+// Result: Connected Human_R_arm_clavicule__CA.IK_FK_Brazo to Human_R_arm_pv__CA.visibility. // 
+
+
+
+ //////////////////////////////////////////////crean contraint orient del controlador hombro al hueso del hombro  Y emparenta entre si 
+ select -r Human_R_arm_fk_shoulder__CA ;
+select -tgl Human_R_shoulder__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_R_shoulder__JS_orientConstraint1 // 
+
+select -r Human_R_arm_fk_elbow__CA ;
+select -tgl Human_R_elbow__JS ;
+doCreateOrientConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+orientConstraint -mo -weight 1;
+// Result: Human_R_elbow__JS_orientConstraint1 //
+
+select -r Human_R_arm_fk_shoulder__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_arm_fk_elbow__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_arm_fk_hand__CA ;
+ds_rigLib_FRZGrps("");
+ 
+parent grpHuman_R_arm_fk_shoulder__CAFRZ Human_R_clavicule__JS ;
+parent grpHuman_R_arm_fk_elbow__CAFRZ Human_R_shoulder__JS;
+parent grpHuman_R_arm_fk_hand__CAFRZ Human_R_elbow__JS;
+
+////////////////////////////////////////////// Grp freeze a las cadenas de huesos
+
+select -cl -sym  ;   
+doGroup 0 1 1;
+select -r null1 ;
+rename "null1" "Human_R_Arm";
+// Result: Human_R_Arm // 
+
+
+parent grpHuman_R_arm_pv__CAFRZ Human_R_Arm ;
+parent grpHuman_R_arm_ik__CAFRZ Human_R_Arm ;
+parent grpHuman_R_arm_clavicule__CAFRZ Human_R_Arm ;
+parent grpHuman_R_clavicule__JSFRZ Human_R_Arm ;
+parent grpHuman_R_Arm_ikHandleFRZ Human_R_Arm ;
+parent grpHuman_R_hand__JSFRZ Human_R_Arm ;
+parent grpHuman_R_shoulder__JSFRZ Human_R_Arm ;
+    
+}
+
+                           
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+//          ______         _           
+//          |  _  \       | |          
+//          | | | |___  __| | ___  ___ 
+//          | | | / _ \/ _` |/ _ \/ __|
+//          | |/ /  __/ (_| | (_) \__ \
+//          |___/ \___|\__,_|\___/|___/                           
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+
+proc Posicionar_Dedos(){
+////////////////////////////////////////////// Se crean las cadenas de huesos y se posicionan (rotando y escalando NO MOVIENDO)
+
+select -r Human_L_hand_End__JS ;
+xform -q -t -ws;
+xform -q -t -ws Human_L_hand_End__JS;
+float $pos[] = `xform -q -t -ws Human_L_hand_End__JS`; 
+
+select -cl;
+
+JointTool;
+
+joint -p ($pos[0]-0.939) $pos[1] ($pos[2]+0.603) ;
+joint -p ($pos[0]-0.939) $pos[1] ($pos[2]+0.603) ;
+joint -p ($pos[0]-0.925) ($pos[1]-0.593) ($pos[2]+0.946) ;
+joint -e -zso -oj xyz -sao yup joint1;
+
+joint -p ($pos[0]-0.744) ($pos[1]-1.397) ($pos[2]+1.718) ;
+joint -e -zso -oj xyz -sao yup joint2;
+
+joint -p ($pos[0]-0.555) ($pos[1]-2.028) ($pos[2]+2.213) ;
+joint -e -zso -oj xyz -sao yup joint3;
+
+rename "joint1" "Human_L_Finger1_00__JS";
+rename "joint2" "Human_L_Finger1_01__JS";
+rename "joint3" "Human_L_Finger1_02__JS";
+rename "joint4" "Human_L_Finger1_03__JS";
+rename "joint5" "Human_L_Finger1_End__JS";
+
+setAttr "Human_L_Finger1_00__JS.radius" 0.3;
+
+
+
+
+select -cl  ;
+
+joint -p ($pos[0]+0.752) ($pos[1]-0.257) ($pos[2]+0.837);
+joint -p ($pos[0]+0.752) ($pos[1]-0.257) ($pos[2]+0.837);
+joint -p ($pos[0]+1.37) ($pos[1]-0.786) ($pos[2]+1.017) ;
+joint -e -zso -oj xyz -sao yup joint1;
+
+joint -p ($pos[0]+1.717) ($pos[1]-1.102) ($pos[2]+1.111) ;
+joint -e -zso -oj xyz -sao yup joint2;
+
+joint -p ($pos[0]+2.256) ($pos[1]-1.437) ($pos[2]+1.26) ;
+joint -e -zso -oj xyz -sao yup joint3;
+
+rename "joint1" "Human_L_Finger2_00__JS";
+rename "joint2" "Human_L_Finger2_01__JS";
+rename "joint3" "Human_L_Finger2_02__JS";
+rename "joint4" "Human_L_Finger2_03__JS";
+rename "joint5" "Human_L_Finger2_End__JS";
+
+
+setAttr "Human_L_Finger2_00__JS.radius" 0.3;
+
+select -cl  ;
+
+joint -p ($pos[0]+0.883) ($pos[1]-0.192) ($pos[2]+0.292);
+joint -p ($pos[0]+0.883) ($pos[1]-0.192) ($pos[2]+0.292);
+joint -p ($pos[0]+1.665) ($pos[1]-0.739) ($pos[2]+0.421) ;
+joint -e -zso -oj xyz -sao yup joint1;
+
+
+joint -p ($pos[0]+2.142) ($pos[1]-1.098) ($pos[2]+0.495) ;
+joint -e -zso -oj xyz -sao yup joint2;
+
+
+joint -p ($pos[0]+2.761) ($pos[1]-1.507) ($pos[2]+0.57) ;
+joint -e -zso -oj xyz -sao yup joint3;
+
+rename "joint1" "Human_L_Finger3_00__JS";
+rename "joint2" "Human_L_Finger3_01__JS";
+rename "joint3" "Human_L_Finger3_02__JS";
+rename "joint4" "Human_L_Finger3_03__JS";
+rename "joint5" "Human_L_Finger3_End__JS";
+
+setAttr "Human_L_Finger3_00__JS.radius" 0.3;
+
+
+select -cl  ;
+
+joint -p ($pos[0]+0.885) ($pos[1]-0.253) ($pos[2]-0.347);
+joint -p ($pos[0]+0.885) ($pos[1]-0.253) ($pos[2]-0.347);
+joint -p ($pos[0]+1.518) ($pos[1]-0.699) ($pos[2]-0.296) ;
+joint -e -zso -oj xyz -sao yup joint1;
+
+
+joint -p  ($pos[0]+1.934) ($pos[1]-1.04) ($pos[2]-0.267) ;
+joint -e -zso -oj xyz -sao yup joint2;
+
+
+joint -p ($pos[0]+2.553) ($pos[1]-1.368) ($pos[2]-0.231) ;
+joint -e -zso -oj xyz -sao yup joint3;
+
+rename "joint1" "Human_L_Finger4_00__JS";
+rename "joint2" "Human_L_Finger4_01__JS";
+rename "joint3" "Human_L_Finger4_02__JS";
+rename "joint4" "Human_L_Finger4_03__JS";
+rename "joint5" "Human_L_Finger4_End__JS";
+
+setAttr "Human_L_Finger4_00__JS.radius" 0.3;
+
+select -cl  ;
+
+joint -p ($pos[0]+0.698) ($pos[1]-0.36) ($pos[2]-0.871);
+joint -p ($pos[0]+0.698) ($pos[1]-0.36) ($pos[2]-0.871);
+joint -p ($pos[0]+1.216) ($pos[1]-0.827) ($pos[2]-0.905) ;
+joint -e -zso -oj xyz -sao yup joint1;
+
+
+joint -p ($pos[0]+1.539) ($pos[1]-1.118) ($pos[2]-0.928) ;
+joint -e -zso -oj xyz -sao yup joint2;
+
+
+joint -p ($pos[0]+2.029) ($pos[1]-1.405) ($pos[2]-0.95) ;
+joint -e -zso -oj xyz -sao yup joint3;
+
+rename "joint1" "Human_L_Finger5_00__JS";
+rename "joint2" "Human_L_Finger5_01__JS";
+rename "joint3" "Human_L_Finger5_02__JS";
+rename "joint4" "Human_L_Finger5_03__JS";
+rename "joint5" "Human_L_Finger5_End__JS";
+
+setAttr "Human_L_Finger5_00__JS.radius" 0.3;
+
+//-----------------------------------------------------
+
+setAttr "Human_L_Finger1_End__JS.radius" 0.5;
+setAttr "Human_L_Finger1_01__JS.radius" 0.5;
+setAttr "Human_L_Finger1_02__JS.radius" 0.5;
+setAttr "Human_L_Finger1_03__JS.radius" 0.5;
+
+setAttr "Human_L_Finger2_End__JS.radius" 0.5;
+setAttr "Human_L_Finger2_01__JS.radius" 0.5;
+setAttr "Human_L_Finger2_02__JS.radius" 0.5;
+setAttr "Human_L_Finger2_03__JS.radius" 0.5;
+
+setAttr "Human_L_Finger3_End__JS.radius" 0.5;
+setAttr "Human_L_Finger3_01__JS.radius" 0.5;
+setAttr "Human_L_Finger3_02__JS.radius" 0.5;
+setAttr "Human_L_Finger3_03__JS.radius" 0.5;
+
+setAttr "Human_L_Finger4_End__JS.radius" 0.5;
+setAttr "Human_L_Finger4_01__JS.radius" 0.5;
+setAttr "Human_L_Finger4_02__JS.radius" 0.5;
+setAttr "Human_L_Finger4_03__JS.radius" 0.5;
+
+setAttr "Human_L_Finger5_End__JS.radius" 0.5;
+setAttr "Human_L_Finger5_01__JS.radius" 0.5;
+setAttr "Human_L_Finger5_02__JS.radius" 0.5;
+setAttr "Human_L_Finger5_03__JS.radius" 0.5;
+
+    }//////////////////////////////////////////////FIN                           
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+    
+    
+proc Clonar_Posicion_Dedos(){ 
+
+
+select -r Human_L_Finger1_00__JS ;
+mirrorJoint -mirrorYZ -mirrorBehavior -searchReplace "_L" "_R";
+// Result: Human_R_Finger1_01__JS Human_R_Finger1_02__JS Human_R_Finger1_03__JS Human_R_Finger1_End__JS // 
+select -r Human_L_Finger2_00__JS ;
+mirrorJoint -mirrorYZ -mirrorBehavior -searchReplace "_L" "_R";
+// Result: Human_R_Finger2_01__JS Human_R_Finger2_02__JS Human_R_Finger2_03__JS Human_R_Finger2_End__JS // 
+select -r Human_L_Finger3_00__JS ;
+mirrorJoint -mirrorYZ -mirrorBehavior -searchReplace "_L" "_R";
+// Result: Human_R_Finger3_01__JS Human_R_Finger3_02__JS Human_R_Finger3_03__JS Human_R_Finger3_End__JS // 
+select -r Human_L_Finger4_00__JS ;
+mirrorJoint -mirrorYZ -mirrorBehavior -searchReplace "_L" "_R";
+// Result: Human_R_Finger4_01__JS Human_R_Finger4_02__JS Human_R_Finger4_03__JS Human_R_Finger4_End__JS // 
+select -r Human_L_Finger5_00__JS ;
+mirrorJoint -mirrorYZ -mirrorBehavior -searchReplace "_L" "_R";
+// Result: Human_R_Finger5_01__JS Human_R_Finger5_02__JS Human_R_Finger5_03__JS Human_R_Finger5_End__JS // 
+
+
+}   
+    
+proc Freeze_Dedos(){ 
+
+
+select -r Human_L_Finger1_00__JS Human_L_Finger2_00__JS Human_L_Finger3_00__JS Human_L_Finger4_00__JS Human_L_Finger5_00__JS Human_R_Finger1_00__JS Human_R_Finger5_00__JS Human_R_Finger4_00__JS Human_R_Finger3_00__JS Human_R_Finger2_00__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+
+
+
+}  
+
+ 
+proc Master_Dedos(){
+
+    
+    
+//////////////////////////////////////////////clonas cadena de huesos (skeleton mirror --> mirror YZ)
+Clonar_Posicion_Dedos();
+
+//////////////////////////////////////////////Freeze Transformations (resetea rotaciones y escalas)
+
+Freeze_Dedos();
+//////////////////////////////////////////////Crear Controladores en los Nudillos
+
+
+
+select -r Human_L_Finger1_01__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+hilite circleX ;
+select -r circleX.cv[0:7] ;
+move -r -os -wd 0 1 0 ;
+rename "circleX" "Human_L_Finger1__CA";
+// Result: Human_L_Finger1__CA // 
+
+select -r Human_L_Finger2_01__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+hilite circleX ;
+select -r circleX.cv[0:7] ;
+move -r -os -wd 0 1 0 ;
+rename "circleX" "Human_L_Finger2__CA";
+// Result: Human_L_Finger2__CA // 
+
+
+select -r Human_L_Finger3_01__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+hilite circleX ;
+select -r circleX.cv[0:7] ;
+move -r -os -wd 0 1 0 ;
+rename "circleX" "Human_L_Finger3__CA";
+// Result: Human_L_Finger3__CA // 
+
+select -r Human_L_Finger4_01__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+hilite circleX ;
+select -r circleX.cv[0:7] ;
+move -r -os -wd 0 1 0 ;
+rename "circleX" "Human_L_Finger4__CA";
+// Result: Human_L_Finger4__CA // 
+
+select -r Human_L_Finger5_01__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+hilite circleX ;
+select -r circleX.cv[0:7] ;
+move -r -os -wd 0 1 0 ;
+rename "circleX" "Human_L_Finger5__CA";
+// Result: Human_L_Finger5__CA //   
+
+
+//////////////////////////////////////////////GRP Freeze
+
+select -cl  ;
+select -r Human_L_Finger1_00__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_Finger2_00__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_Finger3_00__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_Finger4_00__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_Finger5_00__JS ;
+ds_rigLib_FRZGrps("");
+
+
+select -r Human_L_Finger1__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_Finger2__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_Finger3__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_Finger4__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_L_Finger5__CA ;
+ds_rigLib_FRZGrps("");
+
+//////////////////////////////////////////////crear Contraint parent del control del dedo a los huesos del nudillo
+select -cl  ;
+select -r Human_L_Finger1__CA ;
+select -tgl Human_L_Finger1_00__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_L_Finger1_01__JS_parentConstraint1 // 
+select -cl  ;
+select -r Human_L_Finger2__CA ;
+select -tgl Human_L_Finger2_00__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_L_Finger1_01__JS_parentConstraint1 // 
+select -cl  ;
+select -r Human_L_Finger3__CA ;
+select -tgl Human_L_Finger3_00__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_L_Finger1_01__JS_parentConstraint1 // 
+select -cl  ;
+select -r Human_L_Finger4__CA ;
+select -tgl Human_L_Finger4_00__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_L_Finger1_01__JS_parentConstraint1 // 
+select -cl  ;
+select -r Human_L_Finger5__CA ;
+select -tgl Human_L_Finger5_00__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_L_Finger1_01__JS_parentConstraint1 //     
+    
+
+//////////////////////////////////////////////crear atributos por cada dedo
+
+//Base-Mid-Tip-Spread-Twist
+
+addAttr -ln "Base"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA;
+setAttr -e-keyable true |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA.Base;
+addAttr -ln "Mid"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA;
+setAttr -e-keyable true |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA.Mid;
+addAttr -ln "Tip"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA;
+setAttr -e-keyable true |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA.Tip;
+addAttr -ln "Spread"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA;
+setAttr -e-keyable true |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA.Spread;
+addAttr -ln "Twist"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA;
+setAttr -e-keyable true |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA.Twist;
+
+addAttr -ln "Base"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger2__CAFRZ|Human_L_Finger2__CA;
+setAttr -e-keyable true |grpHuman_L_Finger2__CAFRZ|Human_L_Finger2__CA.Base;
+addAttr -ln "Mid"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger2__CAFRZ|Human_L_Finger2__CA;
+setAttr -e-keyable true |grpHuman_L_Finger2__CAFRZ|Human_L_Finger2__CA.Mid;
+addAttr -ln "Tip"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger2__CAFRZ|Human_L_Finger2__CA;
+setAttr -e-keyable true |grpHuman_L_Finger2__CAFRZ|Human_L_Finger2__CA.Tip;
+addAttr -ln "Spread"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger2__CAFRZ|Human_L_Finger2__CA;
+setAttr -e-keyable true |grpHuman_L_Finger2__CAFRZ|Human_L_Finger2__CA.Spread;
+addAttr -ln "Twist"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger2__CAFRZ|Human_L_Finger2__CA;
+setAttr -e-keyable true |grpHuman_L_Finger2__CAFRZ|Human_L_Finger2__CA.Twist;
+
+addAttr -ln "Base"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger3__CAFRZ|Human_L_Finger3__CA;
+setAttr -e-keyable true |grpHuman_L_Finger3__CAFRZ|Human_L_Finger3__CA.Base;
+addAttr -ln "Mid"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger3__CAFRZ|Human_L_Finger3__CA;
+setAttr -e-keyable true |grpHuman_L_Finger3__CAFRZ|Human_L_Finger3__CA.Mid;
+addAttr -ln "Tip"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger3__CAFRZ|Human_L_Finger3__CA;
+setAttr -e-keyable true |grpHuman_L_Finger3__CAFRZ|Human_L_Finger3__CA.Tip;
+addAttr -ln "Spread"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger3__CAFRZ|Human_L_Finger3__CA;
+setAttr -e-keyable true |grpHuman_L_Finger3__CAFRZ|Human_L_Finger3__CA.Spread;
+addAttr -ln "Twist"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger3__CAFRZ|Human_L_Finger3__CA;
+setAttr -e-keyable true |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA.Twist;
+
+addAttr -ln "Base"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger4__CAFRZ|Human_L_Finger4__CA;
+setAttr -e-keyable true |grpHuman_L_Finger4__CAFRZ|Human_L_Finger4__CA.Base;
+addAttr -ln "Mid"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger4__CAFRZ|Human_L_Finger4__CA;
+setAttr -e-keyable true |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA.Mid;
+addAttr -ln "Tip"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger4__CAFRZ|Human_L_Finger4__CA;
+setAttr -e-keyable true |grpHuman_L_Finger4__CAFRZ|Human_L_Finger4__CA.Tip;
+addAttr -ln "Spread"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger4__CAFRZ|Human_L_Finger4__CA;
+setAttr -e-keyable true |grpHuman_L_Finger1__CAFRZ|Human_L_Finger1__CA.Spread;
+addAttr -ln "Twist"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger4__CAFRZ|Human_L_Finger4__CA;
+setAttr -e-keyable true |grpHuman_L_Finger4__CAFRZ|Human_L_Finger4__CA.Twist;
+
+addAttr -ln "Base"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger5__CAFRZ|Human_L_Finger5__CA;
+setAttr -e-keyable true |grpHuman_L_Finger5__CAFRZ|Human_L_Finger5__CA.Base;
+addAttr -ln "Mid"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger5__CAFRZ|Human_L_Finger5__CA;
+setAttr -e-keyable true |grpHuman_L_Finger5__CAFRZ|Human_L_Finger5__CA.Mid;
+addAttr -ln "Tip"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger5__CAFRZ|Human_L_Finger5__CA;
+setAttr -e-keyable true |grpHuman_L_Finger5__CAFRZ|Human_L_Finger5__CA.Tip;
+addAttr -ln "Spread"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger5__CAFRZ|Human_L_Finger5__CA;
+setAttr -e-keyable true |grpHuman_L_Finger5__CAFRZ|Human_L_Finger5__CA.Spread;
+addAttr -ln "Twist"  -at double  -min -90 -max 90 -dv 0 |grpHuman_L_Finger5__CAFRZ|Human_L_Finger5__CA;
+setAttr -e-keyable true |grpHuman_L_Finger5__CAFRZ|Human_L_Finger5__CA.Twist;
+
+
+//////////////////////////////////////////////Conectar Atributos
+
+connectAttr -f Human_L_Finger1__CA.Base Human_L_Finger1_01__JS.rotateZ;
+connectAttr -f Human_L_Finger1__CA.Mid Human_L_Finger1_02__JS.rotateZ;
+connectAttr -f Human_L_Finger1__CA.Tip Human_L_Finger1_01__JS|Human_L_Finger1_02__JS|Human_L_Finger1_03__JS.rotateZ;
+connectAttr -f Human_L_Finger1__CA.Spread Human_L_Finger1_01__JS.rotateY;
+connectAttr -f Human_L_Finger1__CA.Twist Human_L_Finger1_01__JS.rotateX;
+
+connectAttr -f Human_L_Finger2__CA.Base Human_L_Finger2_01__JS.rotateZ;
+connectAttr -f Human_L_Finger2__CA.Mid Human_L_Finger2_02__JS.rotateZ;
+connectAttr -f Human_L_Finger2__CA.Tip Human_L_Finger2_01__JS|Human_L_Finger2_02__JS|Human_L_Finger2_03__JS.rotateZ;
+connectAttr -f Human_L_Finger2__CA.Spread Human_L_Finger2_01__JS.rotateY;
+connectAttr -f Human_L_Finger2__CA.Twist Human_L_Finger2_01__JS.rotateX;
+
+connectAttr -f Human_L_Finger3__CA.Base Human_L_Finger3_01__JS.rotateZ;
+connectAttr -f Human_L_Finger3__CA.Mid Human_L_Finger3_02__JS.rotateZ;
+connectAttr -f Human_L_Finger3__CA.Tip Human_L_Finger3_01__JS|Human_L_Finger3_02__JS|Human_L_Finger3_03__JS.rotateZ;
+connectAttr -f Human_L_Finger3__CA.Spread Human_L_Finger3_01__JS.rotateY;
+connectAttr -f Human_L_Finger3__CA.Twist Human_L_Finger3_01__JS.rotateX;
+
+connectAttr -f Human_L_Finger4__CA.Base Human_L_Finger4_01__JS.rotateZ;
+connectAttr -f Human_L_Finger4__CA.Mid Human_L_Finger4_02__JS.rotateZ;
+connectAttr -f Human_L_Finger4__CA.Tip Human_L_Finger4_01__JS|Human_L_Finger4_02__JS|Human_L_Finger4_03__JS.rotateZ;
+connectAttr -f Human_L_Finger4__CA.Spread Human_L_Finger4_01__JS.rotateY;
+connectAttr -f Human_L_Finger4__CA.Twist Human_L_Finger4_01__JS.rotateX;
+
+connectAttr -f Human_L_Finger5__CA.Base Human_L_Finger5_01__JS.rotateZ;
+connectAttr -f Human_L_Finger5__CA.Mid Human_L_Finger5_02__JS.rotateZ;
+connectAttr -f Human_L_Finger5__CA.Tip Human_L_Finger5_01__JS|Human_L_Finger5_02__JS|Human_L_Finger5_03__JS.rotateZ;
+connectAttr -f Human_L_Finger5__CA.Spread Human_L_Finger5_01__JS.rotateY;
+connectAttr -f Human_L_Finger5__CA.Twist Human_L_Finger5_01__JS.rotateX;    
+    
+Clonar_Master_Dedos(); 
+
+    
+    } //////////////////////////////////////////////FIN
+                           
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+    
+    
+    
+proc Clonar_Master_Dedos(){
+   
+select -r Human_R_Finger1_01__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+hilite circleX ;
+select -r circleX.cv[0:7] ;
+move -r -os -wd 0 -1 0 ;
+rename "circleX" "Human_R_Finger1__CA";
+// Result: Human_R_Finger1__CA // 
+
+select -r Human_R_Finger2_01__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+hilite circleX ;
+select -r circleX.cv[0:7] ;
+move -r -os -wd 0 -1 0 ;
+rename "circleX" "Human_R_Finger2__CA";
+// Result: Human_R_Finger2__CA // 
+
+
+select -r Human_R_Finger3_01__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+hilite circleX ;
+select -r circleX.cv[0:7] ;
+move -r -os -wd 0 -1 0 ;
+rename "circleX" "Human_R_Finger3__CA";
+// Result: Human_R_Finger3__CA // 
+
+select -r Human_R_Finger4_01__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+hilite circleX ;
+select -r circleX.cv[0:7] ;
+move -r -os -wd 0 -1 0 ;
+rename "circleX" "Human_R_Finger4__CA";
+// Result: Human_R_Finger4__CA // 
+
+select -r Human_R_Finger5_01__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+hilite circleX ;
+select -r circleX.cv[0:7] ;
+move -r -os -wd 0 -1 0 ;
+rename "circleX" "Human_R_Finger5__CA";
+// Result: Human_R_Finger5__CA //   
+
+
+//////////////////////////////////////////////GRP Freeze
+
+select -cl  ;
+select -r Human_R_Finger1_00__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_Finger2_00__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_Finger3_00__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_Finger4_00__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_Finger5_00__JS ;
+ds_rigLib_FRZGrps("");
+
+
+select -r Human_R_Finger1__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_Finger2__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_Finger3__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_Finger4__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_R_Finger5__CA ;
+ds_rigLib_FRZGrps("");
+
+//////////////////////////////////////////////crear Contraint parent del control del dedo a los huesos del nudillo
+select -cl  ;
+select -r Human_R_Finger1__CA ;
+select -tgl Human_R_Finger1_00__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_R_Finger1_01__JS_parentConstraint1 // 
+select -cl  ;
+select -r Human_R_Finger2__CA ;
+select -tgl Human_R_Finger2_00__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_R_Finger1_01__JS_parentConstraint1 // 
+select -cl  ;
+select -r Human_R_Finger3__CA ;
+select -tgl Human_R_Finger3_00__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_R_Finger1_01__JS_parentConstraint1 // 
+select -cl  ;
+select -r Human_R_Finger4__CA ;
+select -tgl Human_R_Finger4_00__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_R_Finger1_01__JS_parentConstraint1 // 
+select -cl  ;
+select -r Human_R_Finger5__CA ;
+select -tgl Human_R_Finger5_00__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_R_Finger1_01__JS_parentConstraint1 //     
+    
+
+//////////////////////////////////////////////crear atributos por cada dedo
+
+//Base-Mid-Tip-Spread-Twist
+
+addAttr -ln "Base"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA;
+setAttr -e-keyable true |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA.Base;
+addAttr -ln "Mid"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA;
+setAttr -e-keyable true |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA.Mid;
+addAttr -ln "Tip"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA;
+setAttr -e-keyable true |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA.Tip;
+addAttr -ln "Spread"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA;
+setAttr -e-keyable true |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA.Spread;
+addAttr -ln "Twist"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA;
+setAttr -e-keyable true |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA.Twist;
+
+addAttr -ln "Base"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger2__CAFRZ|Human_R_Finger2__CA;
+setAttr -e-keyable true |grpHuman_R_Finger2__CAFRZ|Human_R_Finger2__CA.Base;
+addAttr -ln "Mid"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger2__CAFRZ|Human_R_Finger2__CA;
+setAttr -e-keyable true |grpHuman_R_Finger2__CAFRZ|Human_R_Finger2__CA.Mid;
+addAttr -ln "Tip"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger2__CAFRZ|Human_R_Finger2__CA;
+setAttr -e-keyable true |grpHuman_R_Finger2__CAFRZ|Human_R_Finger2__CA.Tip;
+addAttr -ln "Spread"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger2__CAFRZ|Human_R_Finger2__CA;
+setAttr -e-keyable true |grpHuman_R_Finger2__CAFRZ|Human_R_Finger2__CA.Spread;
+addAttr -ln "Twist"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger2__CAFRZ|Human_R_Finger2__CA;
+setAttr -e-keyable true |grpHuman_R_Finger2__CAFRZ|Human_R_Finger2__CA.Twist;
+
+addAttr -ln "Base"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger3__CAFRZ|Human_R_Finger3__CA;
+setAttr -e-keyable true |grpHuman_R_Finger3__CAFRZ|Human_R_Finger3__CA.Base;
+addAttr -ln "Mid"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger3__CAFRZ|Human_R_Finger3__CA;
+setAttr -e-keyable true |grpHuman_R_Finger3__CAFRZ|Human_R_Finger3__CA.Mid;
+addAttr -ln "Tip"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger3__CAFRZ|Human_R_Finger3__CA;
+setAttr -e-keyable true |grpHuman_R_Finger3__CAFRZ|Human_R_Finger3__CA.Tip;
+addAttr -ln "Spread"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger3__CAFRZ|Human_R_Finger3__CA;
+setAttr -e-keyable true |grpHuman_R_Finger3__CAFRZ|Human_R_Finger3__CA.Spread;
+addAttr -ln "Twist"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger3__CAFRZ|Human_R_Finger3__CA;
+setAttr -e-keyable true |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA.Twist;
+
+addAttr -ln "Base"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger4__CAFRZ|Human_R_Finger4__CA;
+setAttr -e-keyable true |grpHuman_R_Finger4__CAFRZ|Human_R_Finger4__CA.Base;
+addAttr -ln "Mid"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger4__CAFRZ|Human_R_Finger4__CA;
+setAttr -e-keyable true |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA.Mid;
+addAttr -ln "Tip"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger4__CAFRZ|Human_R_Finger4__CA;
+setAttr -e-keyable true |grpHuman_R_Finger4__CAFRZ|Human_R_Finger4__CA.Tip;
+addAttr -ln "Spread"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger4__CAFRZ|Human_R_Finger4__CA;
+setAttr -e-keyable true |grpHuman_R_Finger1__CAFRZ|Human_R_Finger1__CA.Spread;
+addAttr -ln "Twist"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger4__CAFRZ|Human_R_Finger4__CA;
+setAttr -e-keyable true |grpHuman_R_Finger4__CAFRZ|Human_R_Finger4__CA.Twist;
+
+addAttr -ln "Base"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger5__CAFRZ|Human_R_Finger5__CA;
+setAttr -e-keyable true |grpHuman_R_Finger5__CAFRZ|Human_R_Finger5__CA.Base;
+addAttr -ln "Mid"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger5__CAFRZ|Human_R_Finger5__CA;
+setAttr -e-keyable true |grpHuman_R_Finger5__CAFRZ|Human_R_Finger5__CA.Mid;
+addAttr -ln "Tip"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger5__CAFRZ|Human_R_Finger5__CA;
+setAttr -e-keyable true |grpHuman_R_Finger5__CAFRZ|Human_R_Finger5__CA.Tip;
+addAttr -ln "Spread"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger5__CAFRZ|Human_R_Finger5__CA;
+setAttr -e-keyable true |grpHuman_R_Finger5__CAFRZ|Human_R_Finger5__CA.Spread;
+addAttr -ln "Twist"  -at double  -min -90 -max 90 -dv 0 |grpHuman_R_Finger5__CAFRZ|Human_R_Finger5__CA;
+setAttr -e-keyable true |grpHuman_R_Finger5__CAFRZ|Human_R_Finger5__CA.Twist;
+
+
+//////////////////////////////////////////////Conectar Atributos
+
+connectAttr -f Human_R_Finger1__CA.Base Human_R_Finger1_01__JS.rotateZ;
+connectAttr -f Human_R_Finger1__CA.Mid Human_R_Finger1_02__JS.rotateZ;
+connectAttr -f Human_R_Finger1__CA.Tip Human_R_Finger1_01__JS|Human_R_Finger1_02__JS|Human_R_Finger1_03__JS.rotateZ;
+connectAttr -f Human_R_Finger1__CA.Spread Human_R_Finger1_01__JS.rotateY;
+connectAttr -f Human_R_Finger1__CA.Twist Human_R_Finger1_01__JS.rotateX;
+
+connectAttr -f Human_R_Finger2__CA.Base Human_R_Finger2_01__JS.rotateZ;
+connectAttr -f Human_R_Finger2__CA.Mid Human_R_Finger2_02__JS.rotateZ;
+connectAttr -f Human_R_Finger2__CA.Tip Human_R_Finger2_01__JS|Human_R_Finger2_02__JS|Human_R_Finger2_03__JS.rotateZ;
+connectAttr -f Human_R_Finger2__CA.Spread Human_R_Finger2_01__JS.rotateY;
+connectAttr -f Human_R_Finger2__CA.Twist Human_R_Finger2_01__JS.rotateX;
+
+connectAttr -f Human_R_Finger3__CA.Base Human_R_Finger3_01__JS.rotateZ;
+connectAttr -f Human_R_Finger3__CA.Mid Human_R_Finger3_02__JS.rotateZ;
+connectAttr -f Human_R_Finger3__CA.Tip Human_R_Finger3_01__JS|Human_R_Finger3_02__JS|Human_R_Finger3_03__JS.rotateZ;
+connectAttr -f Human_R_Finger3__CA.Spread Human_R_Finger3_01__JS.rotateY;
+connectAttr -f Human_R_Finger3__CA.Twist Human_R_Finger3_01__JS.rotateX;
+
+connectAttr -f Human_R_Finger4__CA.Base Human_R_Finger4_01__JS.rotateZ;
+connectAttr -f Human_R_Finger4__CA.Mid Human_R_Finger4_02__JS.rotateZ;
+connectAttr -f Human_R_Finger4__CA.Tip Human_R_Finger4_01__JS|Human_R_Finger4_02__JS|Human_R_Finger4_03__JS.rotateZ;
+connectAttr -f Human_R_Finger4__CA.Spread Human_R_Finger4_01__JS.rotateY;
+connectAttr -f Human_R_Finger4__CA.Twist Human_R_Finger4_01__JS.rotateX;
+
+connectAttr -f Human_R_Finger5__CA.Base Human_R_Finger5_01__JS.rotateZ;
+connectAttr -f Human_R_Finger5__CA.Mid Human_R_Finger5_02__JS.rotateZ;
+connectAttr -f Human_R_Finger5__CA.Tip Human_R_Finger5_01__JS|Human_R_Finger5_02__JS|Human_R_Finger5_03__JS.rotateZ;
+connectAttr -f Human_R_Finger5__CA.Spread Human_R_Finger5_01__JS.rotateY;
+connectAttr -f Human_R_Finger5__CA.Twist Human_R_Finger5_01__JS.rotateX;    
+    
+    
+    
+}  //////////////////////////////////////////////FIN
+                           
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+    
+     
+    
+    
+proc Crear_Dedos() {
+
+
+//////////////////////////////////////////////crear Contraint parent del hueso de la mano (no el end) al grupo freeze del coltrol del dedo 
+
+select -r Human_L_hand__JS ;
+select -add grpHuman_L_Finger1__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_L_Finger1__CAFRZ_parentConstraint1 // 
+
+select -r Human_L_hand__JS ;
+select -add grpHuman_L_Finger2__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_L_Finger2__CAFRZ_parentConstraint1 // 
+
+select -r Human_L_hand__JS ;
+select -add grpHuman_L_Finger3__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_L_Finger3__CAFRZ_parentConstraint1 // 
+
+select -r Human_L_hand__JS ;
+select -add grpHuman_L_Finger4__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_L_Finger4__CAFRZ_parentConstraint1 // 
+
+select -r Human_L_hand__JS ;
+select -add grpHuman_L_Finger5__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_L_Finger5__CAFRZ_parentConstraint1 // 
+
+
+/////////////////////////////////////////////Crea Grupos Y Emparenta
+
+select -cl -sym  ;   
+doGroup 0 1 1;
+select -r null1 ;
+rename "null1" "Human_L_Hand";
+
+
+parent grpHuman_L_Finger1_00__JSFRZ Human_L_Hand ;
+
+parent grpHuman_L_Finger2_00__JSFRZ Human_L_Hand ;
+
+parent grpHuman_L_Finger3_00__JSFRZ Human_L_Hand ;
+
+parent grpHuman_L_Finger4_00__JSFRZ Human_L_Hand ;
+
+parent grpHuman_L_Finger5_00__JSFRZ Human_L_Hand ;
+
+parent grpHuman_L_Finger1__CAFRZ Human_L_Hand ;
+
+parent grpHuman_L_Finger2__CAFRZ Human_L_Hand ;
+
+parent grpHuman_L_Finger3__CAFRZ Human_L_Hand ;
+ 
+parent grpHuman_L_Finger4__CAFRZ Human_L_Hand ;
+
+parent grpHuman_L_Finger5__CAFRZ Human_L_Hand ;
+
+
+
+Clonar_Crear_Dedos();
+
+}//////////////////////////////////////////////FIN
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+    
+
+
+proc Clonar_Crear_Dedos(){
+    
+    
+
+//////////////////////////////////////////////crear Contraint parent del hueso de la mano (no el end) al grupo freeze del coltrol del dedo 
+
+select -r Human_R_hand__JS ;
+select -add grpHuman_R_Finger1__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_R_Finger1__CAFRZ_parentConstraint1 // 
+
+select -r Human_R_hand__JS ;
+select -add grpHuman_R_Finger2__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_R_Finger2__CAFRZ_parentConstraint1 // 
+
+select -r Human_R_hand__JS ;
+select -add grpHuman_R_Finger3__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_R_Finger3__CAFRZ_parentConstraint1 // 
+
+select -r Human_R_hand__JS ;
+select -add grpHuman_R_Finger4__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_R_Finger4__CAFRZ_parentConstraint1 // 
+
+select -r Human_R_hand__JS ;
+select -add grpHuman_R_Finger5__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_R_Finger5__CAFRZ_parentConstraint1 // 
+
+
+/////////////////////////////////////////////Crea Grupos Y Emparenta
+
+select -cl -sym  ;   
+doGroup 0 1 1;
+select -r null1 ;
+rename "null1" "Human_R_Hand";
+
+
+parent grpHuman_R_Finger1_00__JSFRZ Human_R_Hand ;
+
+parent grpHuman_R_Finger2_00__JSFRZ Human_R_Hand ;
+
+parent grpHuman_R_Finger3_00__JSFRZ Human_R_Hand ;
+
+parent grpHuman_R_Finger4_00__JSFRZ Human_R_Hand ;
+
+parent grpHuman_R_Finger5_00__JSFRZ Human_R_Hand ;
+
+parent grpHuman_R_Finger1__CAFRZ Human_R_Hand ;
+
+parent grpHuman_R_Finger2__CAFRZ Human_R_Hand ;
+
+parent grpHuman_R_Finger3__CAFRZ Human_R_Hand ;
+ 
+parent grpHuman_R_Finger4__CAFRZ Human_R_Hand ;
+
+parent grpHuman_R_Finger5__CAFRZ Human_R_Hand ;
+
+    
+    
+    
+    
+}//////////////////////////////////////////////FIN
+                           
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+    
+         
+
+proc Twist_Brazos() {
+    
+////////////////////////////////////////////// Se crean huesos y se posicionan
+    
+select -r Human_L_elbow__JS ;
+ds_rigTools_curveCreateWrapper("joint");
+rename "joint" "Human_L_arm_twist01__JS";
+move -r -os -wd 0.8 0 0 ;
+ds_rigTools_curveCreateWrapper("joint");
+rename "joint" "Human_L_arm_twist02__JS";
+move -r -os -wd 0.8 0 0 ;
+ds_rigTools_curveCreateWrapper("joint");
+rename "joint" "Human_L_arm_twist03__JS";
+move -r -os -wd 0.8 0 0 ;
+
+//////////////////////////////////////////////Renombrar
+
+//////////////////////////////////////////////clonas cadena de huesos (skeleton mirror --> mirror YZ)
+
+//////////////////////////////////////////////Freeze Transformations (resetea rotaciones y escalas)
+
+
+select -r Human_L_arm_twist01__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+ds_rigLib_FRZGrps("");
+select -r Human_L_arm_twist02__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+ds_rigLib_FRZGrps("");
+select -r Human_L_arm_twist03__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+ds_rigLib_FRZGrps("");
+
+//////////////////////////////////////////////Contraint parent del grupo del Hueso twist al codo
+
+select -r Human_L_elbow__JS ;
+select -add grpHuman_L_arm_twist01__JSFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grp1Human_L_arm_twist01__JSFRZ_parentConstraint1 // 
+
+select -r Human_L_elbow__JS ;
+select -add grpHuman_L_arm_twist02__JSFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grp1Human_L_arm_twist02__JSFRZ_parentConstraint1 // 
+
+select -r Human_L_elbow__JS ;
+select -add grpHuman_L_arm_twist03__JSFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grp1Human_L_arm_twist03__JSFRZ_parentConstraint1 // 
+
+//////////////////////////////////////////////en la ventana hypershader creamos el multiply/divide y conectamos la rotacion en X
+////////////////////////////////////////////// del hueso de la mano (no end) con los imput X Y Z del nodo mediante conection editor (de la rotacion x --> a los imputs X, Y, Z)
+////////////////////////////////////////////// del output multiply divide sale outupt x para el eje Z del hueso 1, sale outupt Y para el eje x del hueso 2,  sale outupt Z para el eje x del hueso 3 
+
+shadingNode -asUtility multiplyDivide;
+setAttr "multiplyDivide1.operation" 1;
+rename "multiplyDivide1" "Human_L_multiplyDivide";
+// Result: Human_multiplyDivide // 
+
+
+connectAttr -f Human_L_hand__JS.rotateX Human_L_multiplyDivide.input1X;
+connectAttr -f Human_L_hand__JS.rotateX Human_L_multiplyDivide.input1Y;
+connectAttr -f Human_L_hand__JS.rotateX Human_L_multiplyDivide.input1Z;
+
+connectAttr -f Human_L_multiplyDivide.outputX Human_L_arm_twist03__JS.rotateX;
+// Result: Connected multiplyDivide1.output.outputX to Human_L_arm_twist03__JS.rotate.rotateX. // 
+setAttr "Human_L_multiplyDivide.input2X" 0.9;
+
+connectAttr -f Human_L_multiplyDivide.outputY Human_L_arm_twist02__JS.rotateX;
+// Result: Connected multiplyDivide1.output.outputY to Human_L_arm_twist02__JS.rotate.rotateX. // 
+setAttr "Human_L_multiplyDivide.input2Y" 0.75;
+
+connectAttr -f Human_L_multiplyDivide.outputZ Human_L_arm_twist01__JS.rotateX;
+// Result: Connected multiplyDivide1.output.outputZ to Human_L_arm_twist01__JS.rotate.rotateX. // 
+setAttr "Human_L_multiplyDivide.input2Z" 0.6;
+
+// Result: multiplyDivide1 // 
+
+
+
+
+                          
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+
+
+
+  
+////////////////////////////////////////////// Se crean huesos y se posicionan
+    
+select -r Human_R_elbow__JS ;
+ds_rigTools_curveCreateWrapper("joint");
+rename "joint" "Human_R_arm_twist01__JS";
+move -r -os -wd -0.8 0 0 ;
+ds_rigTools_curveCreateWrapper("joint");
+rename "joint" "Human_R_arm_twist02__JS";
+move -r -os -wd -0.8 0 0 ;
+ds_rigTools_curveCreateWrapper("joint");
+rename "joint" "Human_R_arm_twist03__JS";
+move -r -os -wd -0.8 0 0 ;
+
+//////////////////////////////////////////////Renombrar
+
+//////////////////////////////////////////////clonas cadena de huesos (skeleton mirror --> mirror YZ)
+
+//////////////////////////////////////////////Freeze Transformations (resetea rotaciones y escalas)
+
+
+select -r Human_R_arm_twist01__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+ds_rigLib_FRZGrps("");
+select -r Human_R_arm_twist02__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+ds_rigLib_FRZGrps("");
+select -r Human_R_arm_twist03__JS ;
+makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+ds_rigLib_FRZGrps("");
+
+//////////////////////////////////////////////Contraint parent del grupo del Hueso twist al codo
+
+select -r Human_R_elbow__JS ;
+select -add grpHuman_R_arm_twist01__JSFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grp1Human_R_arm_twist01__JSFRZ_parentConstraint1 // 
+
+select -r Human_R_elbow__JS ;
+select -add grpHuman_R_arm_twist02__JSFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grp1Human_R_arm_twist02__JSFRZ_parentConstraint1 // 
+
+select -r Human_R_elbow__JS ;
+select -add grpHuman_R_arm_twist03__JSFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grp1Human_R_arm_twist03__JSFRZ_parentConstraint1 // 
+
+//////////////////////////////////////////////en la ventana hypershader creamos el multiply/divide y conectamos la rotacion en X
+////////////////////////////////////////////// del hueso de la mano (no end) con los imput X Y Z del nodo mediante conection editor (de la rotacion x --> a los imputs X, Y, Z)
+////////////////////////////////////////////// del output multiply divide sale outupt x para el eje Z del hueso 1, sale outupt Y para el eje x del hueso 2,  sale outupt Z para el eje x del hueso 3 
+
+shadingNode -asUtility multiplyDivide;
+setAttr "multiplyDivide1.operation" 1;
+rename "multiplyDivide1" "Human_R_multiplyDivide";
+// Result: Human_multiplyDivide // 
+
+
+connectAttr -f Human_R_hand__JS.rotateX Human_R_multiplyDivide.input1X;
+connectAttr -f Human_R_hand__JS.rotateX Human_R_multiplyDivide.input1Y;
+connectAttr -f Human_R_hand__JS.rotateX Human_R_multiplyDivide.input1Z;
+
+connectAttr -f Human_R_multiplyDivide.outputX Human_R_arm_twist03__JS.rotateX;
+// Result: Connected multiplyDivide1.output.outputX to Human_R_arm_twist03__JS.rotate.rotateX. // 
+setAttr "Human_R_multiplyDivide.input2X" 0.9;
+
+connectAttr -f Human_R_multiplyDivide.outputY Human_R_arm_twist02__JS.rotateX;
+// Result: Connected multiplyDivide1.output.outputY to Human_R_arm_twist02__JS.rotate.rotateX. // 
+setAttr "Human_R_multiplyDivide.input2Y" 0.75;
+
+connectAttr -f Human_R_multiplyDivide.outputZ Human_R_arm_twist01__JS.rotateX;
+// Result: Connected multiplyDivide1.output.outputZ to Human_R_arm_twist01__JS.rotate.rotateX. // 
+setAttr "Human_R_multiplyDivide.input2Z" 0.6;
+
+// Result: multiplyDivide1 // 
+
+
+parent grpHuman_R_arm_twist01__JSFRZ Human_R_Hand ;
+
+parent grpHuman_R_arm_twist02__JSFRZ Human_R_Hand ;
+
+parent grpHuman_R_arm_twist03__JSFRZ Human_R_Hand ;
+
+
+parent grpHuman_L_arm_twist01__JSFRZ Human_L_Hand ;
+
+parent grpHuman_L_arm_twist02__JSFRZ Human_L_Hand ;
+
+parent grpHuman_L_arm_twist03__JSFRZ Human_L_Hand ;
+
+
+
+}//////////////////////////////////////////////FIN
+
+                           
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+//         _____       _                             
+//        /  __ \     | |                            
+//        | /  \/ ___ | |_   _ _ __ ___  _ __   __ _ 
+//        | |    / _ \| | | | | '_ ` _ \| '_ \ / _` |
+//        | \__/\ (_) | | |_| | | | | | | | | | (_| |
+//        \____/\___/|_|\__,_|_| |_| |_|_| |_|\__,_|                                                                                                     
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+
+proc Posicionar_Columna (){
+    
+       
+JointTool;
+
+select -d;
+joint -p 0 3.01 -0.968 ;
+joint -p 0 5.711 -1.668 ;
+joint -e -zso -oj xyz -sao yup joint1;
+rename "joint1" "Human_spine01__JS";
+joint -p 0 9.028 -1.513 ;
+joint -e -zso -oj xyz -sao yup joint2;
+rename "joint2" "Human_spine02__JS";
+joint -p 0 11.622 -1.149 ;
+joint -e -zso -oj xyz -sao yup joint3;
+rename "joint3" "Human_spine03__JS";
+joint -p 0 13.156 -0.513;
+joint -e -zso -oj xyz -sao yup joint4;
+rename "joint4" "Human_neck__JS";
+joint -p 0 18.023 -0.236 ;
+joint -e -zso -oj xyz -sao yup joint5;
+rename "joint5" "Human_head__JS";
+rename "joint6" "Human_head__end";
+select -cl  ;
+
+select -r Human_spine01__JS ;
+ds_rigTools_curveCreateWrapper("joint");
+select -cl  ;
+ds_rigTools_curveCreateWrapper("joint");
+move -r -os -wd 0 1.969 -0.743 ;
+parent joint1 joint ;
+rename "joint" "Human_hip__JS";
+rename "joint1" "Human_hip__end";
+select -r Human_hip__JS ;
+setAttr "Human_hip__JS.radius" 0.5;
+ 
+ 
+ //////////////////////////////////////////////se limita para que no hagas barbaridades
+ 
+transformLimits -ty 0 0 -ety 1 1 Human_head__end;
+transformLimits -tz 0 0 -etz 1 1 Human_head__end;
+
+ transformLimits -sx 1 1 -esx 1 1 Human_head__JS; 
+ transformLimits -sy 1 1 -esy 1 1 Human_head__JS;
+ transformLimits -sz 1 1 -esz 1 1 Human_head__JS; 
+}//////////////////////////////////////////////FIN
+
+                           
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+
+proc Columna_FK (){
+        
+////////////////////////////////////////////// Se crean las cadenas de huesos y se posicionan (rotando y escalando NO MOVIENDO) 
+
+
+//////////////////////////////////////////////Renombrar
+//////////////////////////////////////////////Freeze Transformations (resetea rotaciones y escalas)
+
+////////////////////////////////////////////// Se crean los controladores para la columna fk
+
+select -r Human_spine01__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+select -r Human_spine02__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+select -r Human_spine03__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+select -r Human_neck__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+select -r Human_head__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+
+
+////////////////////////////////////////////// Se crea el controlador de la cabeza que tiene que estar alineada con el cuello
+
+float $pos[] = `getAttr Human_head__end.translate`;
+
+hilite circleX4 ;
+select -r circleX4.cv[0:7] ;
+
+move -r -os -wd $pos[0] 0 0 ;
+select -cl  ;
+hilite -u circleX4 ;
+
+rename "circleX" "Human_spine01__CA";
+rename "circleX1" "Human_spine02__CA";
+rename "circleX2" "Human_spine03__CA";
+rename "circleX3" "Human_neck__CA";
+rename "circleX4" "Human_Head__CA";
+
+
+select -r Human_spine01__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_Head__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_neck__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_spine03__CA ;
+ds_rigLib_FRZGrps("");
+select -r Human_spine02__CA ;
+ds_rigLib_FRZGrps("");
+
+
+////////////////////////////////////////////// Se emparentan correspondientemente los controladores (spine 1 > spine 2 > spine 3 > neck > head)
+
+parent grpHuman_Head__CAFRZ Human_neck__CA ;
+// Result: grpHuman_Head__CAFRZ // 
+parent grpHuman_neck__CAFRZ Human_spine03__CA ;
+// Result: grpHuman_neck__CAFRZ // 
+parent grpHuman_spine03__CAFRZ Human_spine02__CA ;
+// Result: grpHuman_spine03__CAFRZ // 
+parent grpHuman_spine02__CAFRZ Human_spine01__CA ;
+// Result: grpHuman_spine02__CAFRZ // 
+
+////////////////////////////////////////////// parent contraint del controlador de la columna al hueso de la columna  
+
+select -r Human_spine01__CA ;
+select -tgl Human_spine01__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_spine01__JS_parentConstraint1 // 
+
+select -r Human_spine02__CA ;
+select -tgl Human_spine02__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_spine02__JS_parentConstraint1 // 
+
+select -r Human_spine03__CA ;
+select -tgl Human_spine03__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_spine03__JS_parentConstraint1 // 
+
+select -r Human_neck__CA ;
+select -tgl Human_neck__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_neck__JS_parentConstraint1 // 
+
+select -r Human_Head__CA ;
+select -tgl Human_head__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_head__JS_parentConstraint1 // 
+    
+    
+
+////////////////////////////////////////////// desconecta y agrupa(grp freeze) los huesos del cuello y cabeza
+
+select -r Human_neck__JS ;
+DisconnectJoint;
+
+rename "joint1" "Human_spine03__end";
+setAttr "Human_spine03__end.radius" 0.6;
+
+select -r Human_head__JS ;
+DisconnectJoint;
+rename "joint1" "Human_neck__end";
+setAttr "Human_neck__end.radius" 0.6;
+
+select -r Human_neck__JS ;
+ds_rigLib_FRZGrps("");
+select -r Human_head__JS ;
+ds_rigLib_FRZGrps("");
+  
+    }//////////////////////////////////////////////FIN
+
+                           
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////  
+    
+proc Master_Cadera (){
+    
+    
+////////////////////////////////////////////// agrupa (grp freeze) el hueso de la cadera y crea controlador de la cadera
+
+
+select -r Human_hip__JS ;
+ds_rigLib_FRZGrps("");
+
+select -r Human_hip__JS ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "Human_hip_CA";
+hilite Human_hip_CA ;
+select -r Human_hip_CA.cv[0:7] ;
+move -r -os -wd -0.5 0 0 ;
+scale -r -p 0cm -0.511363cm -1cm 2 2 2 ;
+
+updateRenderOverride;
+select -r Human_hip_CA.cv[0:2] ;
+move -r -os -wd -0.547869 -0.107044 0 ;
+
+select -r Human_hip_CA.cv[1] ;
+move -r -os -wd -0.368033 -0.214532 0 ;
+select -r Human_hip_CA.cv[4:6] ;
+move -r -os -wd -0.256994 0.0149432 0 ;
+
+select -r Human_hip_CA.cv[5] ;
+move -r -os -wd -0.235467 0.0994243 0 ;
+
+hilite -u Human_hip_CA ;
+select -r Human_hip_CA ;
+ds_rigLib_FRZGrps("");
+
+
+select -r Human_spine01__JS ;
+ds_rigLib_FRZGrps("");
+
+////////////////////////////////////////////// contraint parent del controlador de la cadera al hueso de la cadera
+
+select -r Human_hip_CA ;
+select -tgl Human_hip__JS ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: Human_hip__JS_parentConstraint1 // 
+    
+    
+    }
+    
+proc Master_Cuerpo (){
+
+
+////////////////////////////////////////////// crea el controlador general de la cintura
+
+select -r Human_hip__JS ;
+ds_rigTools_curveCreateWrapper("squareX");
+rename "squareX" "Human_root__CA";
+setAttr "Human_root__CA.rotateY" 0;
+hilite Human_root__CA ;
+select -r Human_root__CA.cv[0:4] ;
+//move -r -os -wd -0.3 0 0 ;
+scale -r -p 0cm -0.00cm -1.cm 3 3 3 ;
+hilite Human_root__CA ;
+
+select -r Human_root__CA ;
+ds_rigLib_FRZGrps("");
+
+////////////////////////////////////////////// contraints del controlador general de la cintura al  grupo del controlador de la cadera
+
+
+select -r Human_root__CA ;
+select -add grpHuman_hip_CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_hip_CAFRZ_parentConstraint1 // 
+
+////////////////////////////////////////////// contraints del controlador general de la cintura al  grupo del controlador de la columna
+
+select -r Human_root__CA ;
+select -add grpHuman_spine01__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_spine01__CAFRZ_parentConstraint1 // 
+
+parent Human_L_upleg__JS Human_hip_CA ;// emparenta la cadera con la pierna
+parent Human_R_upleg__JS Human_hip_CA ;// emparenta la cadera con la pierna
+
+////////////////////////////////////////////// para terminar de enlazar con el resto del cuerpo 
+//////////////////////////////////////////////contraint del controlador del spine 3 <l grupo del controlador del hombro  
+
+select -r Human_spine03__CA ;
+select -add grpHuman_L_arm_clavicule__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_L_arm_clavicule__CAFRZ_parentConstraint1 // 
+
+select -r Human_spine03__CA ;
+select -add grpHuman_R_arm_clavicule__CAFRZ ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+// Result: grpHuman_L_arm_clavicule__CAFRZ_parentConstraint1 // 
+
+
+////////////////////////////////////////////// agrupar y ordenar outliner
+
+
+select -cl -sym  ;   
+doGroup 0 1 1;
+select -r null1 ;
+rename "null1" "Human_Body";
+
+parent grpHuman_spine01__CAFRZ Human_Body ;
+
+parent grpHuman_neck__JSFRZ Human_Body ;
+
+parent grpHuman_head__JSFRZ Human_Body ;
+
+parent grpHuman_hip__JSFRZ Human_Body ;
+
+parent grpHuman_hip_CAFRZ Human_Body ;
+
+parent grpHuman_spine01__JSFRZ Human_Body ;
+
+parent grpHuman_root__CAFRZ Human_Body ;
+
+
+
+}////////////////////////////////////////////// FIN
+
+proc Master_General(){
+    
+    //////////////////////////////////////////////Crear Master
+
+select -r Human_L_leg_ik__CA ;
+ds_rigTools_curveCreateWrapper("circleX");
+rename "circleX" "ghost";
+
+        
+select -r ghost ;
+xform -q -t -ws;
+xform -q -t -ws ghost;
+float $pos[] = `xform -q -t -ws ghost`; 
+
+
+circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 5 -d 3 -ut 0 -tol 0.0001 -s 8 -ch 1; objectMoveCommand;  
+rename "nurbsCircle1" "Master";  
+select -r Master ;
+move -r -os -wd 0 $pos[1] 0 ; 
+ 
+select -r ghost ;
+doDelete;
+
+ //////////////////////////////////////////////Agrupado rigg
+ 
+select -cl -sym  ;   
+doGroup 0 1 1;
+select -r null1 ;
+rename "null1" "Human_Rigg";
+
+parent Human_L_Leg Human_Rigg ;
+
+parent Human_L_Arm Human_Rigg ;
+
+parent Human_L_Hand Human_Rigg ;
+
+parent Human_R_Leg Human_Rigg ;
+
+parent Human_R_Arm Human_Rigg ;
+
+parent Human_R_Hand Human_Rigg ;
+
+
+parent Human_Body Human_Rigg ;
+
+
+ //////////////////////////////////////////////Agrupado general
+ 
+select -cl -sym  ;   
+doGroup 0 1 1;
+select -r null1 ;
+rename "null1" "Human_Master";
+
+parent Master Human_Master ;
+parent Human_Rigg Human_Master ;
+
+//////////////////////////////////////////////Añadimos al controlador el atributo escala
+addAttr -ln "Escala"  -at double  -min 0 -max 10 -dv 1 |Human_Master|Master;
+setAttr -e-keyable true |Human_Master|Master.Escala;
+
+connectAttr -f Master.Escala Human_Master.scaleX;
+
+connectAttr -f Master.Escala Human_Master.scaleY;
+
+connectAttr -f Master.Escala Human_Master.scaleZ;
+
+select -r Master ;
+select -add Human_Rigg ;
+doCreateParentConstraintArgList 1 { "1","0","0","0","0","0","0","1","","1" };
+parentConstraint -mo -weight 1;
+
+}
+
+
+
+
+showWindow AutoRig;

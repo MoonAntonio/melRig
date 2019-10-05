@@ -1,0 +1,1523 @@
+//---------------------------------------------------------------------------
+// ds_rigLib.mel - MEL Script
+// --------------------------------------------------------------------------
+//
+// DESCRIPTION:
+//	library of procs for use with ds_rigTools
+//
+// REQUIRES:
+//	nothing;
+//
+// USAGE:
+//	source "ds_rigLib.mel";
+//
+// AUTHORS:
+//	Damon D. Shelton - damon@ctrlmusic.com - http://www.damonshelton.com
+//	Copyright 2005 Damon D. Shelton - All Rights Reserved.
+//
+// VERSIONS:
+//	1.00 - Mar 22, 2006 - Initial Release.
+//	1.01 - Apr 04, 2006 - added readerGrps
+//	
+// --------------------------------------------------------------------------
+
+//	-------------------------------------------------------------------------------
+//	MISC SECTION
+//	-------------------------------------------------------------------------------
+
+global proc ds_rigLib_multiMirrorJoint(string $jnts[], string $axis, string $function, string $what, string $with)
+{
+	if(size($jnts)<1)
+		{
+		$jnts=`ls -sl -typ "joint"`;
+		}
+	else
+		{
+		$jnts=`ls -typ "joint" $jnts`;
+		}
+	string $ax;
+	string $func="";
+	string $doSR="";
+	if($what!="" && $with!="")
+		{
+		$doSR="-sr";
+		}
+	if($function=="behavior")
+		{
+		$func="-mb";
+		}
+	switch($axis)
+			{
+			case "XY":
+				$ax="-mxy";
+				break;
+			case "YZ":
+				$ax="-myz";
+				break;
+			case "XZ":
+				$ax="-mxz";
+				break;
+			}
+	for($i=0;$i<size($jnts);++$i)
+		{
+		if($doSR=="-sr" && $func=="-mb")
+			{
+			mirrorJoint $ax $func $doSR $what $with $jnts[$i];
+			}
+		else if($doSR=="" && $func=="-mb")
+			{
+			mirrorJoint $ax $func $jnts[$i];
+			}
+		else if($doSR=="-sr" && $func=="")
+			{
+			mirrorJoint $ax $doSR $what $with $jnts[$i];
+			duplicate -smartTransform -renameChildren $jnts[$i];
+			}
+		else if($doSR=="" && $func=="")
+			{
+			mirrorJoint $ax $jnts[$i];
+			duplicate -smartTransform -renameChildren $jnts[$i];
+			}
+		}
+}
+
+//	*** ds_rigLib_createHeirarchy() *** - creates heirarchy in order of selected objects
+global proc ds_rigLib_createHeirarchy(string $objs[])
+{
+	if(size($objs)<1)
+		{
+		$objs=`ls -sl`;
+		}
+	for($i=0;$i<size($objs);++$i)
+		{
+		if(`objExists $objs[$i+1]`)
+			{
+			parent $objs[$i+1] $objs[$i];
+			}
+		}
+}
+
+//	*** ds_rigLib_createHeirarchy() *** - creates heirarchy in order of selected objects
+global proc ds_rigLib_selectHeirarchy(int $jnts)
+{
+	if($jnts)
+		{
+		string $heirarchy[]=`select -hi`;
+		string $jHeirarchy[]=`ls -typ "joint" -sl`;
+		select -r $jHeirarchy;
+		}
+	else
+		{
+		select -hi;
+		}
+}
+
+//	-------------------------------------------------------------------------------
+//	CONSTRAINTS SECTION
+//	-------------------------------------------------------------------------------
+
+//	*** ds_rigLib_consPO() *** - used for snapping controls into place, etc...
+//	Also for quickly adding point orient constraints to objects(with or W/O offset)
+global proc ds_rigLib_consPO(string $objA, string $objB, int $doCons, int $point, int $orient, int $delConsP, int $delConsO)
+{
+	if($doCons !=0)
+		{
+		string $consP[];
+		string $consO[];
+		string $sel[]=`ls -sl`;
+		$selSize=size($sel);
+		if($objA=="" || $objB=="")
+			{
+			if($selSize<2)
+				{
+				error "You need to select at least one master and one child for constraints";
+				}
+			for($i=0;$i<($selSize-1);++$i)
+				{
+				$objA=$sel[$i];
+				$objB=$sel[$selSize-1];
+				if($point==1)	// no offset
+					{
+					$consP=`pointConstraint -w 1 $objA $objB`;
+					}
+				if($point==2)	// maintain offset
+					{
+					$consP=`pointConstraint -mo -w 1 $objA $objB`;	
+					}
+				if($orient==1)	// no offset
+					{
+					$consO=`orientConstraint -w 1 $objA $objB`;
+					}
+				if($orient==2)	// maintain offset
+					{
+					$consO=`orientConstraint -mo -w 1 $objA $objB`;
+					}
+				if($delConsP !=0)
+					{
+					delete $consP;
+					}
+				if($delConsO !=0)
+					{
+					delete $consO;
+					}
+				}
+			}
+			if($point==1)	// no offset
+				{
+				$consP=`pointConstraint -w 1 $objA $objB`;
+				}
+			if($point==2)	// maintain offset
+				{
+				$consP=`pointConstraint -mo -w 1 $objA $objB`;	
+				}
+
+			if($orient==1)	// no offset
+				{
+				$consO=`orientConstraint -w 1 $objA $objB`;
+				}
+			if($orient==2)	// maintain offset
+				{
+				$consO=`orientConstraint -mo -w 1 $objA $objB`;
+				}
+				
+			if($delConsP !=0)
+				{
+				delete $consP;
+				}
+			if($delConsO !=0)
+				{
+				delete $consO;
+				}
+		}
+}
+
+//	*** ds_rigLib_tgtCons() *** - wrapper for constraints using tgt null 
+//	(if $point/$orient is 0=no constraint,=1 constraint with no offset,=2 constraint with offset)
+global proc ds_rigLib_tgtCons(string $objs[], int $point, int $orient)
+{
+	string $objsArr[];
+	string $tgtArr[];
+	string $tgtName[];
+	string $child[];
+	string $childCap;
+	if(size($objs)<1)
+		{
+		$objs=`ls -sl`;
+		}
+	int $nObjs=size($objs);
+	$child[0]=$objs[($nObjs-1)];
+	$childCap=ds_rigLib_capitalizeString($child[0]);
+	for($i=0;$i<($nObjs-1);++$i)
+		{
+		$objsArr[0]=$objs[$i];
+		$tgtArr=ds_rigLib_ctrlShapes(("grp"+$childCap+"OffsetConsTgt"), $objsArr, "null", 1, 1, 1, 1, 1, 0, "");
+		ds_rigLib_consPO($tgtArr[0], $child[0], 1, $point, $orient, 0, 0);
+		parent $tgtArr[0] $objs[$i];
+		}
+	select -r $objs;
+}
+
+global proc ds_rigLib_readerGrps(string $sel[])
+{
+	if(size($sel)<1)
+		{
+		$sel=`ls -sl`;
+		}
+	if(size($sel)==0)
+		{
+		error "Nothing selected!!";
+		}
+	string $selCap;
+	string $readerGrpName;
+	string $grp;
+	string $parent="grpReadersStart";
+	if(`objExists($parent)`)
+		{
+		$parent="grpReadersStart";
+		}
+	else
+		{
+		$parent=`group -em -w -n "grpReadersStart"`;
+		}
+	for($i=0;$i<size($sel);++$i)
+		{
+		$selCap=ds_rigLib_capitalizeString($sel[$i]);
+		$readerGrpName=("grp"+$selCap+"Reader");
+		int $e=0;
+		while(`objExists($readerGrpName)`)
+			{
+			++$e;
+			$readerGrpName=($readerGrpName+$e);
+			}
+		$grp=`group -em -w -n $readerGrpName`;
+		ds_rigLib_consPO($sel[$i], $readerGrpName, 1, 1, 1, 0, 0);
+		parent $grp $parent;
+		}
+}
+
+//	-------------------------------------------------------------------------------
+//	CONTROL SECTION
+//	-------------------------------------------------------------------------------
+
+//	*** ds_rigLib_ctrlShapes() *** - ctrl movers creation			
+global proc string[] ds_rigLib_ctrlShapes(string $name, string $sel[], string $type, int $doCons, int $point, int $orient, int $delConsP, int $delConsO, int $doColor, string $color)
+{
+	if($name=="")
+		{
+		$name=$type;
+		}
+	if(size($sel)<1)
+		{
+		$sel=`ls -sl`;
+		}
+	string $curve; 
+	string $newShapes[];
+	string $curveArry[];
+	int $selSize=size($sel);
+	int $jChain=0;
+	if($selSize==0)
+		{
+		$selSize=1;
+		$doCons=0;
+		}
+	for ($i=0;$i<$selSize;++$i)
+		{
+		switch($type)
+			{
+			case "circleX":
+				$curveArry=`circle -c 0 0 0 -nr 1 0 0 -sw 360 -r .5 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1 -n $name`;
+				$curve=$curveArry[0];
+				break;
+			case "circleY":
+				$curveArry=`circle -c 0 0 0 -nr 0 1 0 -sw 360 -r .5 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1 -n $name`;
+				$curve=$curveArry[0];
+				break;
+			case "circleZ":
+				$curveArry=`circle -c 0 0 0 -nr 0 0 1 -sw 360 -r .5 -d 3 -ut 0 -tol 0.01 -s 8 -ch 1 -n $name`;
+				$curve=$curveArry[0];
+				break;
+			case "squareX":
+				$curve=`curve -d 1 -p 0 -.5 -.5 -p 0 .5 -.5 -p 0 .5 .5 -p 0 -.5 .5 -p 0 -.5 -.5 -k 0 -k 1 -k 2 -k 3 -k 4 -n $name`;
+				break;
+			case "squareY":
+				$curve=`curve -d 1 -p -.5 0 -.5 -p .5 0 -.5 -p .5 0 .5 -p -.5 0 .5 -p -.5 0 -.5 -k 0 -k 1 -k 2 -k 3 -k 4 -n $name`;
+				break;
+			case "squareZ":
+				$curve=`curve -d 1 -p -.5 -.5 0 -p .5 -.5 0 -p .5 .5 0 -p -.5 .5 0 -p -.5 -.5 0 -k 0 -k 1 -k 2 -k 3 -k 4 -n $name`;
+				break;
+			case "arrowX":
+				$curve=`curve -d 1 -p 0 0 0.288798 -p 0 0 0.494701 -p 0 0.497931 0 -p 0 0 -0.494701 -p 0 0 -0.288798 -p 0 -0.502817 -0.288798 -p 0 -0.502817 0.288798 -p 0 0 0.288798 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -n $name`;
+				break;
+			case "arrowY":
+				$curve=`curve -d 1 -p -0.288798 0 0 -p -0.494701 0 0 -p 0 0 -0.497931 -p 0.494701 0 0 -p 0.288798 0 0 -p 0.288798 0 0.502817 -p -0.288798 0 0.502817 -p -0.288798 0 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -n $name`;
+				break;
+			case "arrowZ":
+				$curve=`curve -d 1 -p -0.288798 0 0 -p -0.494701 0 0 -p 0 0.497931 0 -p 0.494701 0 0 -p 0.288798 0 0 -p 0.288798 -0.502817 0 -p -0.288798 -0.502817 0 -p -0.288798 0 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -n $name`;
+				break;
+			case "crossX":
+				$curve=`curve -d 1 -p 0 -0.25 0.25 -p 0 -0.25 0.5 -p 0 0.25 0.5 -p 0 0.25 0.25 -p 0 0.5 0.25 -p 0 0.5 -0.25 -p 0 0.25 -0.25 -p 0 0.25 -0.5 -p 0 -0.25 -0.5 -p 0 -0.25 -0.25 -p 0 -0.5 -0.25 -p 0 -0.5 0.25 -p 0 -0.25 0.25 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -n $name`;
+				break;
+			case "crossY":
+				$curve=`curve -d 1 -p -0.25 0 0.25 -p -0.5 0 0.25 -p -0.5 0 -0.25 -p -0.25 0 -0.25 -p -0.25 0 -0.5 -p 0.25 0 -0.5 -p 0.25 0 -0.25 -p 0.5 0 -0.25 -p 0.5 0 0.25 -p 0.25 0 0.25 -p 0.25 0 0.5 -p -0.25 0 0.5 -p -0.25 0 0.25 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -n $name`;
+				break;
+			case "crossZ":
+				$curve=`curve -d 1 -p -0.25 -0.25 0 -p -0.5 -0.25 0 -p -0.5 0.25 0 -p -0.25 0.25 0 -p -0.25 0.5 0 -p 0.25 0.5 0 -p 0.25 0.25 0 -p 0.5 0.25 0 -p 0.5 -0.25 0 -p 0.25 -0.25 0 -p 0.25 -0.5 0 -p -0.25 -0.5 0 -p -0.25 -0.25 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -n $name`;
+				break;
+			case "cube":
+				$curve=`curve -d 1 -p -0.5 0.5 0.5 -p 0.5 0.5 0.5 -p 0.5 0.5 -0.5 -p -0.5 0.5 -0.5 -p -0.5 0.5 0.5 -p -0.5 -0.5 0.5 -p -0.5 -0.5 -0.5 -p 0.5 -0.5 -0.5 -p 0.5 -0.5 0.5 -p -0.5 -0.5 0.5 -p 0.5 -0.5 0.5 -p 0.5 0.5 0.5 -p 0.5 0.5 -0.5 -p 0.5 -0.5 -0.5 -p -0.5 -0.5 -0.5 -p -0.5 0.5 -0.5 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 -k 14 -k 15 -n $name`;
+				break;
+			case "sphere":
+				$curve=`curve -d 1 -p 0 .5 0 -p 0 .33 -.33 -p 0 0 -.5 -p 0 -.33 -.33 -p 0 -.5 0 -p 0 -.33 .33 -p 0 0 .5 -p 0 .33 .33 -p 0 .5 0 -p .33 .33 0 -p .5 0 0 -p .33 -.33 0 -p 0 -.5 0 -p -.33 -.33 0 -p -.5 0 0 -p -.33 .33 0 -p 0 .5 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 -k 14 -k 15 -k 16 -n $name`;
+				break;
+			case "locator":
+				$curveArry=`spaceLocator -n $name`;
+				$curve=$curveArry[0];
+				break;
+			case "vector":
+				$curve=`curve -d 1 -p 0 .5 0 -p 0 -.5 0 -p 0 0 0 -p -.5 0 0 -p .5 0 0 -p 0 0 0 -p 0 0 .5 -p 0 0 -.5 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -n $name`;
+				break;
+			case "null":
+				$curve=`group -em -n $name`;
+				break;
+			case "joint":
+				select -cl;
+				$curve=`joint -n $name`;
+				select -cl;
+				break;
+			case "jointChain":
+				select -cl;
+				$curve=`joint -n $name`;
+				select -cl;
+				$jChain=1;
+				break;
+			}
+		if($selSize>0)
+			{
+			ds_rigLib_consPO($sel[$i], $curve, $doCons, $point, $orient, $delConsP, $delConsO);
+			}
+		$newShapes[size($newShapes)]=$curve;
+		}
+	select -r $newShapes;
+	if($doColor)
+		{
+		ds_rigLib_colorObj($newShapes, $color);
+		}
+	if($jChain)
+		{
+		ds_rigLib_createHeirarchy($newShapes);
+		}
+	return $newShapes;
+}
+
+//	*** ds_rigLib_grpCenter() *** - wrapper proc to call ds_rigLib_grpCenterCreate(), set $multi to 1 to create a find center per selection
+global proc ds_rigLib_grpCenter(int $multi)
+{
+	string $sel[]=`ls -sl -fl`;
+	string $grps[];
+	string $grp;
+	string $multiGrp[];
+	if($multi==1)
+		{
+		for($s in $sel)
+	    	{
+			$multiGrp[0]=$s;
+			$grp=ds_rigLib_grpCenterCreate($multiGrp);
+			$grps[size($grps)]=$grp;
+			}
+		select -r $grps;
+		}
+	else
+		{
+		$grp=ds_rigLib_grpCenterCreate($sel);
+		select -r $grp;
+		}
+}
+
+//	*** ds_rigLib_grpCenterCreate() *** - creates a null group at the center point of selected objects
+global proc string ds_rigLib_grpCenterCreate(string $sel[])
+{
+	string $grp;
+	string $grpArr[];
+	float $x;
+	float $y;
+	float $z;
+	int $nSel=size($sel);
+	if($nSel<1)
+		{
+		$grp=`group -em -w -n ("grpCenter#")`;
+		$grpArr[0]=$grp;
+		ds_rigLib_toggleHandle($grpArr, 1);
+		xform -a -ws -t 0 0 0 $grp;
+		select -r $grp;
+		return $grp;
+		}
+	else
+		{
+		vector $center=<<0.0, 0.0, 0.0>>;
+		for($s in $sel)
+			{
+			vector $position;
+			if(nodeType($s)=="transform")
+				{
+				$position=`xform -q -ws -rp $s`;
+				}
+			else
+				{
+				$position=`xform -q -ws -t $s`;
+				}
+			$center=<<(($center.x)+($position.x)), (($center.y)+($position.y)), (($center.z)+($position.z))>>;
+			}
+		$x=(($center.x)/$nSel);
+		$y=(($center.y)/$nSel);
+		$z=(($center.z)/$nSel);
+		$grp=`group -em -w -n ("grpCenter#")`;
+		$grpArr[0]=$grp;
+		ds_rigLib_toggleHandle($grpArr, 1);
+		xform -a -ws -t $x $y $z $grp;
+		select -r $grp;
+		return $grp;
+		}
+}
+
+//	*** ds_rigLib_FRZGrps() *** - zeros out selected object's translation and rotation 
+global proc ds_rigLib_FRZGrps(string $obj)
+{
+	string $sel[];
+    if($obj=="")
+		{
+		$sel=`ls -sl`;
+		}
+    else
+		{
+		$sel[0]=$obj;
+		}
+	string $grp[];
+	string $objArr[];
+	string $nameGrp;
+	string $newObj;
+	string $parents[];
+	int $objSize=size($sel);
+	if($objSize>0);
+		{
+		for($s in $sel)
+			{
+			$newObj=ds_rigLib_capitalizeString($s);
+			$nameGrp=("grp"+$newObj+"FRZ");
+			int $e=0;
+			while(`objExists($nameGrp)`)
+				{
+				++$e;
+				$nameGrp=("grp"+$e+$newObj+"FRZ");
+				}
+			$objArr[0]=$s;
+			$grp=ds_rigLib_ctrlShapes($nameGrp, $objArr, "null", 1, 1, 1, 1, 1, 0, "");
+			$parents=`listRelatives -p $s`;
+			if(size($parents)>0)
+				{
+				parent $grp[0] $parents[0];
+				}
+			parent $s $grp[0];
+			}
+		}
+	if($objSize==0)
+		{
+		$nameGrp=("grpFRZ");
+		int $e=0;
+		while(`objExists($nameGrp)`)
+			{
+			++$e;
+			$nameGrp=("grpFRZ"+$e);
+			}
+		ds_rigLib_ctrlShapes($nameGrp, $objArr, "null", 0, 0, 0, 0, 0, 0, "");
+		}
+}
+
+//	*** ds_rigLib_textCurve() *** - creates text curve objects based off of input text, etc..
+global proc ds_rigLib_textCurve(string $text, string $font, string $weight, int $size, string $name, int $border, int $separate, int $sepLet, float $borderDist, int $doColor, string $color)
+{
+	string $wCase="";
+	if($text=="")
+		error "Please enter desired text!!!";
+	else
+		{
+		if($name=="")
+			$name=$text;
+		if($font=="")
+			error "Please Pick a Font!!!";
+		if($weight=="regular" || $weight=="bold" || $weight=="italic" || $weight=="bold italic" || $weight=="")
+			{
+			switch ($weight)
+				{
+				case "":
+				case "regular":
+					$wCase="w400|c0";
+					break;
+				case "bold":
+					$wCase="w700|c0";
+					break;
+				case "italic":
+					$wCase="w400|c0|i";
+					break;
+				case "bold italic":
+					$wCase="w700|c0|i";
+					break;
+				}
+			}
+		else
+			{
+			error ($weight+" is not a valid font weight!!!");
+			}
+		int $pxSize[];
+		for($i=1;$i<($size*2);++$i)
+			{
+			if(!($i%4))
+				$i++;
+			$pxSize[size($pxSize)]=$i;
+			}
+		string $textCurves[];
+		if(`about -windows`)
+			{
+			$textCurves=`textCurves -ch 0 -f ($font+"|h-"+$pxSize[$size-1]+"|"+$wCase) -t $text -n ($name+"Curve#")`;
+			}
+		else
+			{
+			$textCurves=`textCurves -ch 0 -f $font -t $text -n ($name+"Curve#")`;
+			}
+		ds_rigLib_renameShapes($textCurves);
+		string $childsOrig[];
+		string $childsDup[];
+		string $children[];
+		string $char[];
+		string $charCopy[];
+		string $transforms[];
+		float $trans[];
+		string $shapes[];
+		string $square;
+		string $newTrans;
+		string $newTransArr[];
+		string $cvs[];
+		string $strChar[];
+		string $delChildren[];
+		string $newChildName;
+		string $childName[];
+		string $nameCap;
+		string $newText=`match "^[^\r\n]*" $text`;
+		int $nText=(size($newText)+1);
+		for($n=1;$n<$nText;++$n)
+			{
+			string $subString=`substring $text $n $n`;
+			if($subString==" ")
+				{
+				}
+			else if($subString==":")
+				{
+				$childName[size($childName)]="_";
+				}
+			else
+				{
+				$childName[size($childName)]=$subString;
+				}
+			}
+		$childsOrig=`listRelatives -ni $textCurves[0]`;
+		int $nChildren=size($childsOrig);
+		for($ch=0;$ch<$nChildren;++$ch)
+			{
+			$nameCap=ds_rigLib_capitalizeString($childName[$ch]);
+			$newChildName=($name+"Char"+$nameCap);
+			if(`objExists($name+"Char"+$nameCap+"Mover")`)
+				{
+				$newChildName=($name+"Char"+$nameCap+"Mover#");
+				}
+			else
+				{
+				$newChildName=($name+"Char"+$nameCap+"Mover");
+				}
+			string $dup[]=`duplicate -rr -n $newChildName $childsOrig[$ch]`;
+			$childsDup[size($childsDup)]=$dup[0];
+			}
+		$children=$childsDup;
+		delete $childsOrig;
+		$shapes=`listRelatives -ad -typ "nurbsCurve" $textCurves[0]`;
+		$transforms=`listRelatives -p $shapes`;
+		float $bbMin[]=`getAttr ($textCurves[0]+".boundingBoxMin")`;
+		float $bbMax[]=`getAttr ($textCurves[0]+".boundingBoxMax")`;
+		float $bbMid=($bbMax[0]-$bbMin[0])/2;
+		float $bbMinB[];
+		float $bbMaxB[];
+		float $bbMidB;
+		string $borderName=($name+"Border");
+		if(`objExists($borderName)`)
+			{
+			$borderName=($name+"Border#");
+			}
+		else
+			{
+			$borderName=($name+"Border");
+			}
+		if($border)
+			{
+			$square=`curve -d 1 -p ($bbMin[0]-$borderDist) ($bbMin[1]-$borderDist) 0 -p ($bbMin[0]-$borderDist) ($bbMax[1]+$borderDist) 0  -p ($bbMax[0]+$borderDist) ($bbMax[1]+$borderDist) 0 -p ($bbMax[0]+$borderDist) ($bbMin[1]-$borderDist) 0 -p ($bbMin[0]-$borderDist) ($bbMin[1]-$borderDist) 0 -k 0 -k 1 -k 2 -k 3 -k 4 -n $borderName`;
+			$bbMinB=`getAttr ($square+".boundingBoxMin")`;
+			$bbMaxB=`getAttr ($square+".boundingBoxMax")`;
+			$bbMidB=($bbMaxB[0]-$bbMinB[0])/2;
+			}
+// create text that has no border and is one curve object
+		if($border==0 && $separate==0 && $sepLet==0)
+			{
+			for($t=0;$t<size($shapes);++$t)
+				{
+				if(objExists($newTrans))
+					{
+					$newTrans=$newTrans;
+					}
+				else
+					{
+					$newTrans=`createNode "transform" -n ($name+"#")`;
+					}
+				$trans=`xform -q -ws -t $transforms[$t]`;
+				parent -add -s $shapes[$t] $newTrans;
+				$cvs=`select -r ($shapes[$t]+".cv[*]")`;
+				move -r -x $trans[0];
+				select -r $newTrans;
+				xform -ws -piv $bbMid $bbMin[1] 0 $newTrans;
+				$newTransArr[0]=$newTrans;
+				if($doColor)
+					{
+					ds_rigLib_colorObj($newTransArr, $color);
+					}
+				}
+			select -r $newTrans;
+			}
+// create text that has no border and each character is a separate curve object
+		if($border==0 && $separate==0 && $sepLet==1)
+			{
+			for($c=0;$c<size($children);++$c)
+				{
+				if(objExists($newTrans))
+					{
+					$newTrans=$newTrans;
+					}
+				else
+					{
+					$newTrans=`createNode "transform" -n ($name+"#")`;
+					}
+				$strChar=`listRelatives -ad -typ "nurbsCurve" $children[$c]`;
+				$dupChild=`duplicate -rr -rc $children[$c]`;
+				$delChildren=`listRelatives -ad $dupChild[0]`;
+				delete $delChildren;
+				parent -add -s $strChar $dupChild[0];
+				parent $dupChild[0] $newTrans;
+				select -r $dupChild[0];
+				xform -ws -piv $bbMid $bbMin[1] 0 $dupChild[0];
+				select -r $newTrans;
+				xform -ws -piv $bbMid $bbMin[1] 0 $newTrans;
+				if($doColor)
+					{
+					ds_rigLib_colorObj($dupChild, $color);
+					}
+				}
+			select -r $newTrans;
+			}
+// create text that has a border and is one single object
+		if($border==1 && $separate==0 && $sepLet==0)
+			{
+			for($t=0;$t<size($shapes);++$t)
+				{
+				$trans=`xform -q -ws -t $transforms[$t]`;
+				parent -add -s $shapes[$t] $square;
+				$cvs=`select -r ($shapes[$t]+".cv[*]")`;
+				move -r -x $trans[0];
+				}
+			select -r $square;
+			string $squareArr[];
+			$squareArr[0]=$square;
+			$squareArr=ds_rigLib_rename($squareArr, "replace", "Border", "", "", "", "", 0);
+			$square=$squareArr[0];
+			xform -ws -piv $bbMidB $bbMinB[1] 0 $square;
+			if($doColor)
+					{
+					ds_rigLib_colorObj($squareArr, $color);
+					}
+			}
+// create text that has a border and the text is a separate object from the border
+		if($border==1 && $separate==1 && $sepLet==0)
+			{
+			for($t=0;$t<size($shapes);++$t)
+				{
+				$trans=`xform -q -ws -t $transforms[$t]`;
+				if(objExists($newTrans))
+					{
+					$newTrans=$newTrans;
+					}
+				else
+					{
+					$newTrans=`createNode "transform" -n ($name+"#")`;
+					parent $newTrans $square;
+					}
+				parent -add -s $shapes[$t] $newTrans;
+				$cvs=`select -r ($shapes[$t]+".cv[*]")`;
+				move -r -x $trans[0];
+				select -r $newTrans;
+				xform -ws -piv $bbMidB $bbMinB[1] 0 $newTrans;
+				select -r $square;
+				xform -ws -piv $bbMidB $bbMinB[1] 0 $square;
+				$newTransArr[0]=$newTrans;
+				$squareArr[0]=$square;
+				if($doColor)
+					{
+					ds_rigLib_colorObj($newTransArr, $color);
+					ds_rigLib_colorObj($squareArr, $color);
+					}
+				}
+			select -r $square;
+			}
+// create text that has a border and each character is a separate object
+		if($border==1 && $separate==0 && $sepLet==1)
+			{
+			for($c=0;$c<size($children);++$c)
+				{
+				$strChar=`listRelatives -ad -typ "nurbsCurve" $children[$c]`;
+				$dupChild=`duplicate -rr -rc $children[$c]`;
+				$delChildren=`listRelatives -ad $dupChild[0]`;
+				delete $delChildren;
+				parent -add -s $strChar $dupChild[0];
+				parent $dupChild[0] $square;
+				select -r $dupChild[0];
+				xform -ws -piv $bbMidB $bbMinB[1] 0 $dupChild[0];
+				select -r $square;
+				xform -ws -piv $bbMidB $bbMinB[1] 0 $square;
+				$squareArr[0]=$square;
+				if($doColor)
+					{
+					ds_rigLib_colorObj($dupChild, $color);
+					ds_rigLib_colorObj($squareArr, $color);
+					}
+				}
+			select -r $square;
+			}
+		delete $textCurves[0];
+		if($border)
+			{
+			move -ws -xy (-$bbMidB) (-$bbMinB[1]);
+			makeIdentity -a 1 -t 1 -r 1 -s 1;
+			}
+		else
+			{
+			move -ws -xy (-$bbMid) (-$bbMin[1]);
+			makeIdentity -a 1 -t 1 -r 1 -s 1;
+			}
+		string $sel[]=`ls -sl`;
+		string $combineFinal[];
+		string $selChildFRZ[]=`listRelatives -typ "transform" $sel`;
+		$combineFinal=stringArrayCatenate($selChildFRZ, $sel);
+		ds_rigLib_renameShapes($combineFinal);
+		for($frz in $combineFinal)
+			{
+			ds_rigLib_FRZGrps($frz);
+			}
+		select -r $sel;
+		}
+}
+
+//	*** ds_rigLib_multiShapeAdd() *** - combine shapes under first selected transform object
+global proc string ds_rigLib_multiShapeAdd(string $sel[], string $name)
+{
+	string $new;
+	if(size($sel)<1)
+		$sel=`ls -sl`;
+	if(size($sel)<2)
+		error ("Please Select At Least 2 Curves!!! Nothing Done!!!");
+	if($name=="")
+		$name=$sel[0];
+	string $selArr[];
+	$selArr[0]=$sel[0];
+	$new=$sel[0];
+	string $shapes[]=`listRelatives -ad -typ "nurbsCurve" $sel`;
+	string $parent[];
+	float $parentTrans[]=`xform -q -ws -t $new`;
+	string $newTransform[]=ds_rigLib_ctrlShapes($name, $selArr, "null", 1, 1, 1, 1, 1, 0, "");
+	xform -ws -piv (-($parentTrans[0])) (-($parentTrans[1])) (-($parentTrans[2])) $newTransform[0];
+	string $transforms[];
+	float $trans[];
+	for($i=0;$i<size($shapes);++$i)
+		{
+		$parent=`listRelatives -p $shapes[$i]`;
+		$transforms[size($transforms)]=$parent[0];
+		$trans=`xform -q -ws -t $parent[0]`;
+		parent -add -s $shapes[$i] $newTransform[0];
+		$cvs=`select -r ($shapes[$i]+".cv[*]")`;
+		move -r -xyz ((-($parentTrans[0]))+$trans[0]) ((-($parentTrans[1]))+$trans[1]) ((-($parentTrans[2]))+$trans[2]);
+		}
+	delete $transforms;
+	xform -ws -piv ($parentTrans[0]) ($parentTrans[1]) ($parentTrans[2]) $newTransform[0];
+	select -r $newTransform[0];
+	return $newTransform[0];
+}
+
+//	-------------------------------------------------------------------------------
+//	DISPLAY SECTION
+//	-------------------------------------------------------------------------------
+
+//	*** ds_rigLib_toggleLRA() *** - toggle LRA on or off
+global proc ds_rigLib_toggleLRA(string $sel[], int $on)
+{
+	if(size($sel)<1)
+		{
+		$sel=`ls -sl`;
+		}
+	toggle -la -st $on;
+}
+
+//	*** ds_rigLib_toggleHandle() *** - toggle select handle on or off
+global proc ds_rigLib_toggleHandle(string $sel[], int $on)
+{
+	if(size($sel)<1)
+		{
+		$sel=`ls -sl`;
+		}
+	toggle -sh -st $on;
+}
+
+//	*** ds_rigLib_resizeCurves() *** - resize curves with check for along X,Y,Z
+global proc ds_rigLib_resizeCurves(string $curves[], int $x, int $y, int $z, float $scale)
+{
+	float $scaleDiv=$scale/100.0;
+	float $scaleX;
+	float $scaleY;
+	float $scaleZ;
+	if($x)
+		{
+		$scaleX=$scaleDiv;
+		}
+	else
+		{
+		$scaleX=1.0;
+		}
+	if($y)
+		{
+		$scaleY=$scaleDiv;
+		}
+	else
+		{
+		$scaleY=1.0;
+		}
+	if($z)
+		{
+		$scaleZ=$scaleDiv;
+		}
+	else
+		{
+		$scaleZ=1.0;
+		}
+	string $shapes[];
+	int $curveCheck=0;
+	string $isCrvS;
+	string $isCrvC;
+	if(size($curves)<1)
+		{
+		$curves=`ls -sl`;
+		}
+	for($c in $curves)
+		{
+		$curveCheck=0;
+		$shapes=`listRelatives -ni -s $c`;
+		for($s in $shapes)
+			{
+			$isCrvS=nodeType($s);
+			if($isCrvS=="nurbsCurve")
+				{
+				$curveCheck=1;
+				break;
+				}
+			}
+		$isCrvC=nodeType($c);
+		if($isCrvC=="nurbsCurve")
+			$curveCheck=1;
+		if($curveCheck==1)
+			{
+			select -r ($c+".cv[*]");
+			scale -r $scaleX $scaleY $scaleZ;
+			select -cl;
+			}
+		else
+			{
+			}
+		}
+    select -r $curves;
+}
+
+//	*** ds_rigLib_jntOverride() *** - set override of all joints
+global proc ds_rigLib_jntOverride(int $allJnts, int $on)
+{
+	string $sel[]=`ls -sl`;
+	string $selShapes[]=`listRelatives -ni -s $sel`;
+	string $joints[]=`ls -typ "joint"`;
+	string $selJnts[]=`ls -typ "joint" -sl`;
+	string $jnt;
+	string $selAll[];
+	string $obj;
+	if($allJnts !=0)
+		{
+		for($jnt in $joints)
+			setAttr ($jnt+".overrideEnabled") $on;
+		}
+	else
+		{
+		$selAll=`stringArrayCatenate $selShapes $selJnts`;
+		for($obj in $selAll)
+		setAttr ($obj+".overrideEnabled") $on;	
+		}
+}	
+		
+//	*** ds_rigLib_colorObj() *** - calls color for selected objs
+global proc ds_rigLib_colorObj(string $objs[], int $colorNum)
+{
+	string $color=$colorNum;
+	if(size($objs)<1)
+		{
+		$objs=`ls -sl`;
+		}
+	for($obj in $objs)
+		{
+		ds_rigLib_colorSet($obj, $color);
+		}
+}
+
+//	*** ds_rigLib_colorSet() *** - sets colors on shapeNodes
+global proc ds_rigLib_colorSet(string $obj, string $color)
+{
+	string $selShapesCtrls[]=`listRelatives -ni -s $obj`;
+	string $selShapes[];
+	$selShapes=$selShapesCtrls;
+	string $selShape;		
+	for($selShape in $selShapes)
+		{
+		if(objExists($selShape+".overrideEnabled")!=true)
+			continue;
+			setAttr ($selShape+".overrideEnabled") 1;
+	switch($color)
+		{
+		case "1":
+			setAttr ($selShape+".overrideColor") 1;
+			break;
+		case "2":
+			setAttr ($selShape+".overrideColor") 2;
+			break;
+		case "3":
+			setAttr ($selShape+".overrideColor") 3;
+			break;
+		case "4":
+			setAttr ($selShape+".overrideColor") 4;
+			break;
+		case "5":
+			setAttr ($selShape+".overrideColor") 5;
+			break;
+		case "6":
+			setAttr ($selShape+".overrideColor") 6;
+			break;
+		case "7":
+			setAttr ($selShape+".overrideColor") 7;
+			break;
+		case "8":
+			setAttr ($selShape+".overrideColor") 8;
+			break;
+		case "9":
+			setAttr ($selShape+".overrideColor") 9;
+			break;
+		case "10":
+			setAttr ($selShape+".overrideColor") 10;
+			break;
+		case "11":
+			setAttr ($selShape+".overrideColor") 11;
+			break;
+		case "12":
+			setAttr ($selShape+".overrideColor") 12;
+			break;
+		case "13":
+			setAttr ($selShape+".overrideColor") 13;
+			break;
+		case "14":
+			setAttr ($selShape+".overrideColor") 14;
+			break;
+		case "15":
+			setAttr ($selShape+".overrideColor") 15;
+			break;
+		case "16":
+			setAttr ($selShape+".overrideColor") 16;
+			break;
+		case "17":
+			setAttr ($selShape+".overrideColor") 17;
+			break;
+		case "18":
+			setAttr ($selShape+".overrideColor") 18;
+			break;
+		case "19":
+			setAttr ($selShape+".overrideColor") 19;
+			break;
+		case "20":
+			setAttr ($selShape+".overrideColor") 20;
+			break;
+		case "21":
+			setAttr ($selShape+".overrideColor") 21;
+			break;
+		case "22":
+			setAttr ($selShape+".overrideColor") 22;
+			break;
+		case "23":
+			setAttr ($selShape+".overrideColor") 23;
+			break;
+		case "24":
+			setAttr ($selShape+".overrideColor") 24;
+			break;
+		case "25":
+			setAttr ($selShape+".overrideColor") 25;
+			break;
+		case "26":
+			setAttr ($selShape+".overrideColor") 26;
+			break;
+		case "27":
+			setAttr ($selShape+".overrideColor") 27;
+			break;
+		case "28":
+			setAttr ($selShape+".overrideColor") 28;
+			break;
+		case "29":
+			setAttr ($selShape+".overrideColor") 29;
+			break;
+		case "30":
+			setAttr ($selShape+".overrideColor") 30;
+			break;
+		case "31":
+			setAttr ($selShape+".overrideColor") 31;
+			break;
+		}
+	}
+}
+
+//	*** ds_rigLib_toggleDisplay() *** - toggle display options in model panel based off of case
+global proc ds_rigLib_toggleDisplay(string $case)
+{
+    string $panel;
+	string $type;
+	string $scriptedType;
+	int $query;
+	int $value;
+	$panel=`getPanel -up`;
+    if(""==$panel)
+		{
+        $panel=`getPanel -wf`;
+		}
+    if(""!=$panel)
+		{
+        $type=`getPanel -to $panel`;
+        if($type=="modelPanel")
+			{
+			switch($case)
+				{
+				case "shaded wire":
+					$query=`modelEditor -q -wos $panel`;
+					if($query)
+						modelEditor -e -wos 0 $panel;
+					else
+						modelEditor -e -wos 1 $panel;
+					break;
+				case "xray":
+					$query=`modelEditor -q -xr $panel`;
+					if($query)
+						modelEditor -e -xr 0 $panel;
+					else
+						modelEditor -e -xr 1 $panel;
+					break;
+				case "culling":
+					$query=`modelEditor -q -bfc $panel`;
+					if($query)
+						modelEditor -e -bfc 0 $panel;
+					else
+						modelEditor -e -bfc 1 $panel;
+					break;
+				case "isolate":
+					$query=`isolateSelect -q -s $panel`;
+					if($query)
+						enableIsolateSelect $panel 0;
+					else
+						enableIsolateSelect $panel 1;
+					break;
+				case "grid":
+					$query=`modelEditor -q -gr $panel`;
+					if($query)
+						modelEditor -e -gr 0 $panel;
+					else
+						modelEditor -e -gr 1 $panel;
+					break;
+				case "all":
+					$query=`modelEditor -q -alo $panel`;
+					if($query)
+						modelEditor -e -alo 0 $panel;
+					else
+						modelEditor -e -alo 1 $panel;
+					break;
+				case "curves":
+					$query=`modelEditor -q -nc $panel`;
+					if($query)
+						modelEditor -e -nc 0 $panel;
+					else
+						modelEditor -e -nc 1 $panel;
+					break;
+				case "locators":
+					$query=`modelEditor -q -lc $panel`;
+					if($query)
+						modelEditor -e -lc 0 $panel;
+					else
+						modelEditor -e -lc 1 $panel;
+					break;
+				case "surfaces":
+					$query=`modelEditor -q -ns $panel`;
+					if($query)
+						modelEditor -e -ns 0 $panel;
+					else
+						modelEditor -e -ns 1 $panel;
+					break;
+				case "poly":
+					$query=`modelEditor -q -pm $panel`;
+					if($query)
+						modelEditor -e -pm 0 $panel;
+					else
+						modelEditor -e -pm 1 $panel;
+					break;
+				case "subD":
+					$query=`modelEditor -q -sds $panel`;
+					if($query)
+						modelEditor -e -sds 0 $panel;
+					else
+						modelEditor -e -sds 1 $panel;
+					break;
+				case "joints":
+					$query=`modelEditor -q -j $panel`;
+					if($query)
+						modelEditor -e -j 0 $panel;
+					else
+						modelEditor -e -j 1 $panel;
+					break;
+				case "ikHandles":
+					$query=`modelEditor -q -ikh $panel`;
+					if($query)
+						modelEditor -e -ikh 0 $panel;
+					else
+						modelEditor -e -ikh 1 $panel;
+					break;
+				case "handles":
+					$query=`modelEditor -q -ha $panel`;
+					if($query)
+						modelEditor -e -ha 0 $panel;
+					else
+						modelEditor -e -ha 1 $panel;
+					break;
+				case "pivots":
+					$query=`modelEditor -q -pv $panel`;
+					if($query)
+						modelEditor -e -pv 0 $panel;
+					else
+						modelEditor -e -pv 1 $panel;
+					break;
+				case "planes":
+					$query=`modelEditor -q -pl $panel`;
+					if($query)
+						modelEditor -e -pl 0 $panel;
+					else
+						modelEditor -e -pl 1 $panel;
+					break;
+				case "deformers":
+					$query=`modelEditor -q -df $panel`;
+					if($query)
+						modelEditor -e -df 0 $panel;
+					else
+						modelEditor -e -df 1 $panel;
+					break;
+				case "lights":
+					$query=`modelEditor -q -lt $panel`;
+					if($query)
+						modelEditor -e -lt 0 $panel;
+					else
+						modelEditor -e -lt 1 $panel;
+					break;
+				case "cameras":
+					$query=`modelEditor -q -ca $panel`;
+					if($query)
+						modelEditor -e -ca 0 $panel;
+					else
+						modelEditor -e -ca 1 $panel;
+					break;
+				case "cv":
+					$query=`modelEditor -q -cv $panel`;
+					if($query)
+						modelEditor -e -cv 0 $panel;
+					else
+						modelEditor -e -cv 1 $panel;
+					break;
+				case "hulls":
+					$query=`modelEditor -q -hu $panel`;
+					if($query)
+						modelEditor -e -hu 0 $panel;
+					else
+						modelEditor -e -hu 1 $panel;
+					break;
+				case "dynamics":
+					$query=`modelEditor -q -dy $panel`;
+					if($query)
+						modelEditor -e -dy 0 $panel;
+					else
+						modelEditor -e -dy 1 $panel;
+					break;
+				case "fluids":
+					$query=`modelEditor -q -fl $panel`;
+					if($query)
+						modelEditor -e -fl 0 $panel;
+					else
+						modelEditor -e -fl 1 $panel;
+					break;
+				case "hair":
+					$query=`modelEditor -q -hs $panel`;
+					if($query)
+						modelEditor -e -hs 0 $panel;
+					else
+						modelEditor -e -hs 1 $panel;
+					break;
+				case "follicles":
+					$query=`modelEditor -q -fo $panel`;
+					if($query)
+						modelEditor -e -fo 0 $panel;
+					else
+						modelEditor -e -fo 1 $panel;
+					break;
+				case "dimensions":
+					$query=`modelEditor -q -dim $panel`;
+					if($query)
+						modelEditor -e -dim 0 $panel;
+					else
+						modelEditor -e -dim 1 $panel;
+					break;
+				case "textures":
+					$query=`modelEditor -q -tx $panel`;
+					if($query)
+						modelEditor -e -tx 0 $panel;
+					else
+						modelEditor -e -tx 1 $panel;
+					break;
+				case "strokes":
+					$query=`modelEditor -q -str $panel`;
+					if($query)
+						modelEditor -e -str 0 $panel;
+					else
+						modelEditor -e -str 1 $panel;
+					break;
+				}
+			}
+		}
+}
+
+//	*** ds_rigLib_shapeVis() *** - connects shape visibility to specified attribute
+global proc ds_rigLib_shapeVis(string $attr, string $obj)
+{
+	string $shapes[]=`listRelatives -ni -shapes $obj`;
+
+    for($s in $shapes)
+    	{
+    	if(objExists($s+".visibility")==1)
+    		{
+			connectAttr -f ($attr) ($s+".visibility");
+    		}
+    	}
+}
+
+//	-------------------------------------------------------------------------------
+//	NAMING SECTION
+//	-------------------------------------------------------------------------------
+
+//	*** ds_rigLib_capitalizeString() *** - capitalize first letter of given name
+global proc string ds_rigLib_capitalizeString(string $name)
+{
+	string $newName;
+	$newName=capitalizeString($name);
+	return $newName;
+}
+
+//	*** ds_rigLib_renameShapes() *** - rename curve shapes to be unique
+global proc string[] ds_rigLib_renameShapes(string $objs[])
+{
+	string $origSel[];
+	$origSel=`ls -sl`;
+	string $newShapeNames[];
+	string $newShapeNamed[];
+	string $parentsNew[];
+	string $newShapesArr[];
+	string $newShapes[];
+	string $parentsNameNew="";
+	if(size($objs)<1)
+		{
+		$objs=`ls -sl`;
+		$newShapes=`listRelatives -ad -typ "nurbsCurve" $objs`;
+		}
+	if(($objs[0])=="*")
+		{
+		$objs=`ls -type "nurbsCurve" "*"`;
+		$newShapes=$objs;
+		}
+	else
+		{
+		$newShapes=`listRelatives -ad -typ "nurbsCurve" $objs`;
+		}
+	for($i=0;$i<size($newShapes);++$i)
+		{
+		$parentsNew=`listRelatives -parent $newShapes[$i]`;
+		$parentsNameNew=`match "[^|]*$" $parentsNew[0]`;
+		$newShapesArr[0]=$newShapes[$i];
+		$newShapeNamed=ds_rigLib_rename($newShapesArr, "rename", "", "", "", "", ($parentsNameNew+"Shape"), 1);
+		$newShapeNames[size($newShapeNames)]=$newShapeNamed[0];
+		}
+	select -r $origSel;
+	return $newShapeNames;
+}
+
+//	*** ds_rigLib_replace() *** - replace string with string in given name
+global proc string ds_rigLib_replace(string $name, string $what, string $with)
+{
+    string $newName="";
+    if($what=="")
+		{
+        return $name;
+		}
+    if ($name=="")
+		{
+        return $name;
+		}
+    int $sizeName=size($name);
+    int $sizeWhat=size($what);
+    int $match;
+	int $end;
+	string $sub;
+	string $char;
+    for($i=1;$i<=$sizeName;++$i)
+        {
+		$match=0;
+		$end=$i+($sizeWhat-1);
+		if($end<=$sizeName)
+	    	{
+			$sub=`substring $name $i $end`;
+			if($sub==$what)
+				$match=1;
+			}	
+		if($match)
+	    	{
+			$newName+=$with;
+			$i=$end;
+			}
+		else
+	    	{
+			$char=`substring $name $i $i`;
+			$newName+=$char;
+			}
+		}
+    return $newName;
+}
+
+//	*** ds_rigLib_shortName() *** - returns object name without pipes
+global proc string ds_rigLib_shortName(string $name)
+{
+    string $newName="";
+    if($name=="")
+		{
+        return $newName;
+		}
+    string $shortName=`match "[^|]*$" $name`;
+	 return $shortName;
+}
+
+//	*** ds_rigLib_stripNumbers() *** - remove numeric suffix from given string
+global proc string ds_rigLib_stripNumbers(string $name)
+{
+	string $newName=`match ".*[^0-9]" $name`;
+	return $newName;
+}
+
+//	*** ds_rigLib_getNumbers() *** - get numeric suffix from string
+global proc string ds_rigLib_getNumbers(string $name)
+{
+	string $numbers=`match "[0-9]+$" $name`;
+	return $numbers;
+}
+
+//	*** ds_rigLib_rename() *** - rename the selected objects accordingly (search and replace, add prefix, add suffix, capitalize string, lower case string, rename)
+global proc string[] ds_rigLib_rename(string $sel[], string $case, string $what, string $with, string $prefix, string $suffix, string $rename, int $start)
+{
+	string $objs[];
+	if(size($sel)<1)
+		{
+		$objs=`ls -sl -long`;
+		}
+	else
+		{
+		$objs=`ls -long $sel`;
+		}
+    int $nObjs=size($objs);
+	if($nObjs<1)
+		{
+		error ("Please Select Object(s) To Rename!! Nothing Done!!!");
+		}
+    string $shortName;
+    string $newShortName;
+    string $newName;
+	string $newLongName[];
+	string $newRename;
+	string $obj;
+	string $nameNoNum;
+	string $numbers;
+    for($i=0;$i<$nObjs;++$i)
+        {
+		$shortName=ds_rigLib_shortName($objs[$i]);
+		switch($case)
+	    	{
+			case "replace":
+				if($what=="")
+					{
+					error ("Please Enter Search String!! Nothing Done!!!");
+					return $objs;
+					}
+				$newShortName=ds_rigLib_replace($shortName, $what, $with);
+				int $e=0;
+				while(`objExists($newShortName)`)
+					{
+					++$e;
+					$newShortName=(ds_rigLib_replace($shortName, $what, $with)+$e);
+					}
+				break;
+			case "prefix":
+				if($prefix=="")
+					{
+					error ("Please Enter Prefix String!!! Nothing Done!!!");
+					return $objs;
+					}
+				$shortNameCap=ds_rigLib_capitalizeString($shortName);
+				$newShortName=($prefix+$shortNameCap);
+				int $e=0;
+				while(`objExists($newShortName)`)
+					{
+					++$e;
+					$newShortName=($prefix+$shortNameCap+$e);
+					}
+				break;
+			case "suffix":
+				if($suffix=="")
+					{
+					error ("Please Enter Suffix String!!! Nothing Done!!!");
+					return $objs;
+					}
+				$newShortName=($shortName+$suffix);
+				int $e=0;
+				while(`objExists($newShortName)`)
+					{
+					++$e;
+					$newShortName=($shortName+$suffix+$e);
+					}
+				break;
+			case "upper":
+				$newShortName=`toupper $shortName`;
+				int $e=0;
+				while(`objExists($newShortName)`)
+					{
+					++$e;
+					$nameNoNum=ds_rigLib_stripNumbers($shortName);
+					$newShortName=((`toupper $nameNoNum`)+$e);
+					}
+				break;
+			case "lower":
+				$newShortName=`tolower $shortName`;
+				int $e=0;
+				while(`objExists($newShortName)`)
+					{
+					++$e;
+					$nameNoNum=ds_rigLib_stripNumbers($shortName);
+					$newShortName=((`tolower $nameNoNum`)+$e);
+					}
+				break;
+			case "rename":
+				if($rename=="")
+					{
+					error ("Please Enter Rename String!!! Nothing Done!!!");
+					return $objs;
+					}
+				int $nStart=$i+$start;
+				$newShortName=($rename+$nStart);
+				while(`objExists($newShortName)`)
+					{
+					++$nStart;
+					$newShortName=($rename+$nStart);
+					}
+				break;
+			}
+		$newName=`rename $shortName $newShortName`;
+		select -r $newName;
+		}
+	string $newNameArr[];
+	$newNameArr[0]=$newName;
+    return $newNameArr;
+}

@@ -1,0 +1,1108 @@
+//---------------------------------------------------------------------------
+// ds_rigTools.mel - MEL Script
+// --------------------------------------------------------------------------
+//
+// DESCRIPTION:
+//	collection of tools to help speed up the process while rigging
+//
+// REQUIRES:
+//	ds_rigLib.mel;
+//
+// USAGE:
+//	source "ds_rigTools.mel"; ds_rigTools();
+//
+// AUTHORS:
+//	Damon D. Shelton - damon@ctrlmusic.com - http://www.damonshelton.com
+//	Copyright 2006 Damon D. Shelton - All Rights Reserved.
+//
+// VERSIONS:
+//	1.00 - Mar 22, 2006 - Initial Release.
+//	1.01 - Mar 22, 2006 - fixed a ui drawing issue in Linux
+//	1.02 - Mar 23, 2006 - fixed issue with drawing of ui in XP
+//	1.03 - Apr 03, 2006 - added popup menu with all ui defined attributes for master obj on shape vis connect and adjusted loading to only load first selected object
+//						  added 5 percent increments (from 5 to 200) on scale for resize
+//						  added selection for uniquecurve shapes naming to reselect original selection
+//						  added reader groups (select objects/movers you want to read and run the script)
+//						  set defaults for joint mirroring to be YZ and behavior since that is used more often
+//						  moved center groups, multi groups and null to extras section to be with other group tools
+// --------------------------------------------------------------------------
+
+
+eval("source \"ds_rigLib.mel\";");
+
+global string $ds_rigTools_Version="1.03";
+
+//	-------------------------------------------------------------------------------
+//	UI SECTION
+//	-------------------------------------------------------------------------------
+
+global proc ds_rigTools()
+{
+	global string $ds_rigTools_Version;
+	if(`window -ex ds_rigTools_win`!=true)
+		{
+		window -t ("ds_rigTools - "+$ds_rigTools_Version) -in "ds_rigTools" ds_rigTools_win;
+					
+			//	tools form
+			formLayout -w 480 ds_rigTools_mainForm;
+								
+				//	colors form
+			if(`about -windows`)
+				{
+				formLayout -p "ds_rigTools_mainForm" -w 20 ds_rigTools_colorForm;
+				}
+			else
+				{
+				formLayout -p "ds_rigTools_mainForm" -w 20 -h 385 ds_rigTools_colorForm;
+				}
+					gridLayout -p "ds_rigTools_colorForm" -nc 2 -cwh 18 20 ds_rigTools_colorGrid;
+					int $order[]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
+					for($i=0;$i<=31;++$i)
+						{
+						if($i==0)
+							{
+							canvas -rgb .5 .5 .5 -ann ("\"Maya's Default (0)\"") -pc ("ds_rigLib_colorObj({}, 0);") ("ds_rigTools_canvas"+$i);
+							popupMenu;
+								menuItem -l "Set as Default" -c ("canvas -e -rgb .5 .5 .5 ds_rigTools_canvasDefault;");
+							}
+						else
+							{
+							int $colorOrder=$order[$i];
+							float $index[]=`colorIndex -q $colorOrder`;
+							float $indR=$index[0];
+							float $indG=$index[1];
+							float $indB=$index[2];
+							canvas -rgb $indR $indG $indB -ann ("\""+$colorOrder+"\"") -pc ("ds_rigLib_colorObj({}, "+$colorOrder+");") ("ds_rigTools_canvas"+$i);
+								popupMenu;
+									menuItem -l "Set as Default" -c ("canvas -e -rgb "+$indR+" "+$indG+" "+$indB+" -ann \""+$i+"\" ds_rigTools_canvasDefault;");
+							}
+						}
+						setParent ..;
+						canvas -p "ds_rigTools_colorForm" -w 36 -h 30 -rgb .5 .5 .5 -ann "0" ds_rigTools_canvasDefault;
+						checkBox -p "ds_rigTools_colorForm" -l "use" -v 1 -ann "use default color when creating curve objects. RMB on colors in grid to set them as the default color" ds_rigTools_defaultColorCB;
+				
+						
+						
+				//	control form
+				formLayout -p "ds_rigTools_mainForm" -w 100 -h 211 ds_rigTools_ctrlForm;
+					text -p "ds_rigTools_ctrlForm" -w 100 -l "CONTROLS" -al "center" -ann "creates specific control curves, nulls, locators, etc. if objects are selecte it will automatically position and orient the controls at each selected object" ds_rigTools_ctrlLabel;
+					scrollLayout -p "ds_rigTools_ctrlForm" -w 100 -hst 0 -vst 16 ds_rigTools_ctrlScroll;
+						rowColumnLayout -p "ds_rigTools_ctrlScroll" -nc 1 -cw 1 78 ds_rigTools_ctrlRowColumn;
+							shelfButton -st "textOnly" -h 20 -l "CircleX" -ann "Create circle control curve on X axis" -c ("ds_rigTools_curveCreateWrapper(\"circleX\");");
+							shelfButton -st "textOnly" -h 20 -l "CircleY" -ann "Create circle control curve on Y axis" -c ("ds_rigTools_curveCreateWrapper(\"circleY\");");
+							shelfButton -st "textOnly" -h 20 -l "CircleZ" -ann "Create circle control curve on Z axis" -c ("ds_rigTools_curveCreateWrapper(\"circleZ\");");
+							shelfButton -st "textOnly" -h 20 -l "SquareX" -ann "Create square control curve on X axis" -c ("ds_rigTools_curveCreateWrapper(\"squareX\");");
+							shelfButton -st "textOnly" -h 20 -l "SquareY" -ann "Create square control curve on Y axis" -c ("ds_rigTools_curveCreateWrapper(\"squareY\");");
+							shelfButton -st "textOnly" -h 20 -l "SquareZ" -ann "Create square control curve on Z axis" -c ("ds_rigTools_curveCreateWrapper(\"squareZ\");");
+							shelfButton -st "textOnly" -h 20 -l "ArrowX" -ann "Create arrow control curve on X axis" -c ("ds_rigTools_curveCreateWrapper(\"arrowX\");");
+							shelfButton -st "textOnly" -h 20 -l "ArrowY" -ann "Create arrow control curve on Y axis" -c ("ds_rigTools_curveCreateWrapper(\"arrowY\");");
+							shelfButton -st "textOnly" -h 20 -l "ArrowZ" -ann "Create arrow control curve on Z axis" -c ("ds_rigTools_curveCreateWrapper(\"arrowZ\");");
+							shelfButton -st "textOnly" -h 20 -l "CrossX" -ann "Create cross control curve on X axis" -c ("ds_rigTools_curveCreateWrapper(\"crossX\");");
+							shelfButton -st "textOnly" -h 20 -l "CrossY" -ann "Create cross control curve on Y axis" -c ("ds_rigTools_curveCreateWrapper(\"crossY\");");
+							shelfButton -st "textOnly" -h 20 -l "CrossZ" -ann "Create cross control curve on Z axis" -c ("ds_rigTools_curveCreateWrapper(\"crossZ\");");
+							shelfButton -st "textOnly" -h 20 -l "Cube" -ann "Create cube control curve" -c ("ds_rigTools_curveCreateWrapper(\"cube\");");
+							shelfButton -st "textOnly" -h 20 -l "Sphere" -ann "Create sphere control curve" -c ("ds_rigTools_curveCreateWrapper(\"sphere\");");
+							shelfButton -st "textOnly" -h 20 -l "Vector" -ann "Create vector control curve" -c ("ds_rigTools_curveCreateWrapper(\"vector\");");
+							shelfButton -st "textOnly" -h 20 -l "Locator" -ann "Create locator" -c ("ds_rigTools_curveCreateWrapper(\"locator\");");
+							shelfButton -st "textOnly" -h 20 -l "Joint" -ann "Create joint" -c ("ds_rigTools_curveCreateWrapper(\"joint\");");
+							shelfButton -st "textOnly" -h 20 -l "Joint Chain" -ann "Create joint chain" -c ("ds_rigTools_curveCreateWrapper(\"jointChain\");");
+							
+							
+				
+				//	extras form			
+				formLayout -p "ds_rigTools_mainForm" -w 100 -h 125 ds_rigTools_extrasForm;
+					text -p "ds_rigTools_extrasForm" -w 100 -al "center" -l "EXTRAS" -ann "some extra tools I find handy to use when rigging" ds_rigTools_extrasLabel;
+					scrollLayout -p "ds_rigTools_extrasForm" -w 100 -hst 0 -vst 16 ds_rigTools_extrasScroll;
+						rowColumnLayout -p "ds_rigTools_extrasScroll" -nc 1 -cw 1 78 ds_rigTools_extrasRowColumn;
+							shelfButton -st "textOnly" -h 20 -l "Null" -ann "Create null" -c ("ds_rigTools_curveCreateWrapper(\"null\");");
+							shelfButton -st "textOnly" -h 20 -l "Grp Center" -ann "Create null at center of selected objects/components" -c ("ds_rigLib_grpCenter(0);");
+							shelfButton -st "textOnly" -h 20 -l "Grp Multi" -ann "Create null at each selected object/component" -c ("ds_rigLib_grpCenter(1);");
+							shelfButton -st "textOnly" -h 20 -l "Grp Freeze" -ann "freeze transformations on curve by transfering transforms to a group parented above selected to keep local orientation" -c ("ds_rigLib_FRZGrps(\"\");");
+							shelfButton -st "textOnly" -h 20 -l "Grp Reader" -ann "creates a null group that is PO cons to each selected object to do direct connection attribute driving on other objects with the transforms of the selected objects(parents groups under a master Reader group that is parented to the world called \"grpReadersStart\")" -c ("ds_rigLib_readerGrps({});");
+							shelfButton -st "textOnly" -h 20 -l "PCons" -ann "point constrain no offset to tgt null parented under initial constrain to object" -c ("ds_rigLib_tgtCons({}, 1, 0);");
+							shelfButton -st "textOnly" -h 20 -l "OCons" -ann "orient constrain no offset to tgt null parented under initial constrain to object" -c ("ds_rigLib_tgtCons({}, 0, 1);");
+							shelfButton -st "textOnly" -h 20 -l "POCons" -ann "point/orient constrain no offset to tgt null parented under initial constrain to object" -c ("ds_rigLib_tgtCons({}, 1, 1);");
+							shelfButton -st "textOnly" -h 20 -l "PCons Offset" -ann "point constrain with offset to tgt null parented under initial constrain to object" -c ("ds_rigLib_tgtCons({}, 2, 0);");
+							shelfButton -st "textOnly" -h 20 -l "OCons Offset" -ann "orient constrain with offset to tgt null parented under initial constrain to object" -c ("ds_rigLib_tgtCons({}, 0, 2);");
+							shelfButton -st "textOnly" -h 20 -l "POCons Offset" -ann "point/orient constrain with offset to tgt null parented under initial constrain to object" -c ("ds_rigLib_tgtCons({}, 2, 2);");
+							shelfButton -st "textOnly" -h 20 -l "Sel Heir" -ann "select heirarchy" -c ("ds_rigLib_selectHeirarchy(0);");
+							shelfButton -st "textOnly" -h 20 -l "Sel Jnt Heir " -ann "select heirarchy, joints only" -c ("ds_rigLib_selectHeirarchy(1);");
+							shelfButton -st "textOnly" -h 20 -l "Create Heir" -ann "create heirarchy based off of selection order, first to last" -c ("ds_rigLib_createHeirarchy({});");
+							shelfButton -st "textOnly" -h 20 -l "LRA On" -ann "turn ON LRA on selected objects" -c ("ds_rigLib_toggleLRA({}, 1);");
+							shelfButton -st "textOnly" -h 20 -l "LRA Off" -ann "turn OFF LRA on selected objects" -c ("ds_rigLib_toggleLRA({}, 0);");
+							shelfButton -st "textOnly" -h 20 -l "Handle On" -ann "turn ON Select Handle on selected objects" -c ("ds_rigLib_toggleHandle({}, 1);");
+							shelfButton -st "textOnly" -h 20 -l "Handles Off" -ann "turn OFF Select Handle on selected objects" -c ("ds_rigLib_toggleHandle({}, 0);");
+							shelfButton -st "textOnly" -h 20 -l "O-ride All On" -ann "turn ON Drawing Override for all Joints" -c ("ds_rigLib_jntOverride(1, 1);");
+							shelfButton -st "textOnly" -h 20 -l "O-ride All Off" -ann "turn OFF Drawing Override for all Joints" -c ("ds_rigLib_jntOverride(1, 0);");
+							shelfButton -st "textOnly" -h 20 -l "O-ride Sel On" -ann "turn ON Drawing Override for selected Joints" -c ("ds_rigLib_jntOverride(0, 1);");
+							shelfButton -st "textOnly" -h 20 -l "O-ride Sel Off" -ann "turn OFF Drawing Override for selected Joints" -c ("ds_rigLib_jntOverride(0, 0);");
+				
+					separator -p "ds_rigTools_mainForm" -st "single" -hr 0 ds_rigTools_toolsSepA;		
+							
+				//	name form
+				formLayout -p "ds_rigTools_mainForm" -w 150 ds_rigTools_nameForm;
+					text -p "ds_rigTools_nameForm" -l "Curve Name:" -ann "uses name in textfield when creating curve objects. if blank then it names the curves to default naming" ds_rigTools_nameTX;
+					textField -p "ds_rigTools_nameForm" -tx "" ds_rigTools_nameTF;
+					separator -p "ds_rigTools_nameForm" -st "double" ds_rigTools_nameSep;		
+				
+				//	text curve form
+				string $quote[];
+				$quote[0]="\"";
+				string $fontsList[]=`fontDialog -FontList`;
+				string $fonts[]=stringArrayRemove($quote, $fontsList);
+				int $sizes[]={8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72};
+				formLayout -p "ds_rigTools_mainForm" -w 150 ds_rigTools_txCurveForm;
+					text -p "ds_rigTools_txCurveForm" -w 150 -al "center" -l "TEXT CURVES" -ann "creates solid curve objects based on the text input, etc. parents multiple shapes under single transforms where necessary" ds_rigTools_txCurveLabel;
+					text -p "ds_rigTools_txCurveForm" -l "text:" ds_rigTools_txCurveTXText;
+					textField -p "ds_rigTools_txCurveForm" -tx "" ds_rigTools_txCurveTFText;
+					text -p "ds_rigTools_txCurveForm" -l "font:" -ann "Warning: Some fonts you have installed may not work correctly !!" ds_rigTools_txCurveTXFont;
+					textField -p "ds_rigTools_txCurveForm" -tx $fonts[0] ds_rigTools_txCurveTFFont;
+						popupMenu -p ds_rigTools_txCurveTFFont;
+						for($i=0;$i<size($fonts);++$i)
+							{
+							menuItem -l $fonts[$i] -c ("textField -e -tx \""+$fonts[$i]+"\" ds_rigTools_txCurveTFFont;");
+							}
+					text -p "ds_rigTools_txCurveForm" -l "weight:" ds_rigTools_txCurveTXWeight;
+					textField -p "ds_rigTools_txCurveForm" -tx "regular" -w 85 ds_rigTools_txCurveTFWeight;
+					if(`about -windows`)
+						{
+						popupMenu -p ds_rigTools_txCurveTFWeight;
+							menuItem -l "regular" -c ("textField -e -tx \"regular\" ds_rigTools_txCurveTFWeight;");
+							menuItem -l "bold" -c ("textField -e -tx \"bold\" ds_rigTools_txCurveTFWeight;");
+							menuItem -l "italic" -c ("textField -e -tx \"italic\" ds_rigTools_txCurveTFWeight;");
+							menuItem -l "bold italic" -c ("textField -e -tx \"bold italic\" ds_rigTools_txCurveTFWeight;");
+						}
+					else
+						{
+						text -e -vis 0 ds_rigTools_txCurveTXWeight;
+						textField -e -vis 0 ds_rigTools_txCurveTFWeight;
+						}
+					text -p "ds_rigTools_txCurveForm" -l "size:" ds_rigTools_txCurveTXSize;
+					textField -p "ds_rigTools_txCurveForm" -tx "12" ds_rigTools_txCurveTFSize;
+					if(`about -windows`) 
+						{
+						popupMenu -p ds_rigTools_txCurveTFSize;
+						for($j=0;$j<size($sizes);++$j)
+							{
+							menuItem -l $sizes[$j] -c ("textField -e -tx \""+$sizes[$j]+"\" ds_rigTools_txCurveTFSize;");
+							}
+						}
+					else
+						{
+						text -e -vis 0 ds_rigTools_txCurveTXSize;
+						textField -e -vis 0 ds_rigTools_txCurveTFSize;
+						}
+					checkBox -p "ds_rigTools_txCurveForm" -l "border" -ofc "checkBox -e -v 0 -en 0 ds_rigTools_txCurveCBSeparate;" -onc "checkBox -e -v 0 -en 1 ds_rigTools_txCurveCBSeparate;" -v 1 ds_rigTools_txCurveCBBorder;
+					checkBox -p "ds_rigTools_txCurveForm" -l "sep text" -onc "checkBox -e -v 0 ds_rigTools_txCurveCBSepLet;" -v 0 ds_rigTools_txCurveCBSeparate;
+					checkBox -p "ds_rigTools_txCurveForm" -l "sep char" -onc "checkBox -e -v 0 ds_rigTools_txCurveCBSeparate;" -v 0 ds_rigTools_txCurveCBSepLet;
+					text -p "ds_rigTools_txCurveForm" -l "border distance:" ds_rigTools_txCurveTXDist;
+					floatField -p "ds_rigTools_txCurveForm" -v .15 ds_rigTools_txCurveFFDist;
+					button -p "ds_rigTools_txCurveForm" -l "Create Text Curve" -ann "creates solid curve objects based on the text input, etc. parents multiple shapes under single transforms where necessary" -c ("ds_rigTools_txCurveWrapper();") ds_rigTools_txCurveBtn;
+					separator -p "ds_rigTools_txCurveForm" -st "double" ds_rigTools_txCurveSep;
+					
+				// combine form
+				formLayout -p "ds_rigTools_mainForm" -w 150 ds_rigTools_combineForm;
+					button -p "ds_rigTools_combineForm" -l "Combine Curves" -ann "select curves you want to combine. will parent the shapes of those curves to the first selected curves transform" -c ("ds_rigTools_multiShapeWrapper();") ds_rigTools_combineCurveBtn;
+					separator -p "ds_rigTools_combineForm" -st "double" ds_rigTools_combineSep;
+					
+				// resize form
+				formLayout -p "ds_rigTools_mainForm" -w 150 ds_rigTools_resizeForm;
+					float $scales[]={5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 190, 195, 200};
+					floatSliderGrp -p "ds_rigTools_resizeForm" -f 1 -l "  %" -v 100 -min 1.0 -max 200.00 -cw3 20 30 20 -pre 0 ds_rigTools_resizeFSG;
+						popupMenu -p ds_rigTools_resizeFSG;
+						for($s=0;$s<size($scales);++$s)
+							{
+							menuItem -l $scales[$s] -c ("floatSliderGrp -e -v "+$scales[$s]+" ds_rigTools_resizeFSG;");
+							}
+					checkBoxGrp -p "ds_rigTools_resizeForm" -ncb 3 -l1 "X" -l2 "Y" -l3 "Z" -cw3 40 40 40 -va3 1 1 1 ds_rigTools_resizeCBG;
+					button -p "ds_rigTools_resizeForm" -l "Resize Curves" -ann "select curves you want to resize, set scale, choose axis (X, Y, Z). WARNING: if selected curve object has multiple shapeNodes you may have to select the actual shapeNodes of that curve to make it scale correctly!!" -c ("ds_rigTools_resizeWrapper();") ds_rigTools_resizeBtn;
+					separator -p "ds_rigTools_resizeForm" -st "double" ds_rigTools_resizeSep;
+					
+				// shape vis form
+				formLayout -p "ds_rigTools_mainForm" -w 150 ds_rigTools_shapeVisForm;	
+					text -w 45 -p "ds_rigTools_shapeVisForm" -l "master:" -ann "master object/control to hold attribute that controls shape vis" ds_rigTools_shapeVisMasterTX;
+					textField -w 130 -p "ds_rigTools_shapeVisForm" ds_rigTools_shapeVisMasterTF;
+					button -p "ds_rigTools_shapeVisForm" -l "<<<" -c ("ds_rigTools_tfLoad(\"ds_rigTools_shapeVisMasterTF\");") ds_rigTools_shapeVisMasterBtn;
+					text -w 45 -p "ds_rigTools_shapeVisForm" -l "attribute:" -ann "enter attribute name to connect to the shape.visibility of selected objects. will create attribute if it doesn't exist" ds_rigTools_shapeVisAttrTX;
+					textField -p "ds_rigTools_shapeVisForm" ds_rigTools_shapeVisAttrTF;
+					button -p "ds_rigTools_shapeVisForm" -l "Connect Shape Visibility" -ann "select objects whose shape visibility will be connected, input master object into master field, input controlling attribute into attribute field(will create attribute if it doesn't exist)" -c ("ds_rigTools_shapeVisWrapper();") ds_rigTools_shapeVisBtn;
+				
+				
+					separator -p "ds_rigTools_mainForm" -st "single" -hr 0 ds_rigTools_toolsSepB;
+					
+					
+				// display toggle form
+				formLayout -p "ds_rigTools_mainForm" -w 100 -h 211 ds_rigTools_toggleForm;
+					text -l "DISPLAY" -w 100 -al "center" -ann "series of toggle buttons to quickly toggle the visibility attributes of the active model panel" ds_rigTools_toggleLabel;
+					scrollLayout -p "ds_rigTools_toggleForm" -w 100 -hst 0 -vst 16 ds_rigTools_toggleScroll;
+						rowColumnLayout -p "ds_rigTools_toggleScroll" -nc 1 -cw 1 78 ds_rigTools_toggleRowColumn;
+							shelfButton -st "textOnly" -h 20 -l "shaded Wire" -ann "toggle shaded wireframe on/off" -c ("ds_rigLib_toggleDisplay(\"shaded wire\");");
+							shelfButton -st "textOnly" -h 20 -l "xray" -ann "toggle xray on/off" -c ("ds_rigLib_toggleDisplay(\"xray\");");
+							shelfButton -st "textOnly" -h 20 -l "culling" -ann "toggle backface culling on/off" -c ("ds_rigLib_toggleDisplay(\"culling\");");
+							shelfButton -st "textOnly" -h 20 -l "isolate" -ann "toggle isolate selected on/off" -c ("ds_rigLib_toggleDisplay(\"isolate\");");
+							shelfButton -st "textOnly" -h 20 -l "grid" -ann "toggle grid on/off" -c ("ds_rigLib_toggleDisplay(\"grid\");");
+							shelfButton -st "textOnly" -h 20 -l "all" -ann "toggle all objects on/off" -c ("ds_rigLib_toggleDisplay(\"all\");");
+							shelfButton -st "textOnly" -h 20 -l "curves" -ann "toggle nurbs curves on/off" -c ("ds_rigLib_toggleDisplay(\"curves\");");
+							shelfButton -st "textOnly" -h 20 -l "locators" -ann "toggle locators on/off" -c ("ds_rigLib_toggleDisplay(\"locators\");");
+							shelfButton -st "textOnly" -h 20 -l "surfaces" -ann "toggle nurbs surfaces on/off" -c ("ds_rigLib_toggleDisplay(\"surfaces\");");
+							shelfButton -st "textOnly" -h 20 -l "polyMesh" -ann "toggle poly meshes on/off" -c ("ds_rigLib_toggleDisplay(\"poly\");");
+							shelfButton -st "textOnly" -h 20 -l "subD" -ann "toggle subDivision surfaces on/off" -c ("ds_rigLib_toggleDisplay(\"subD\");");
+							shelfButton -st "textOnly" -h 20 -l "joints" -ann "toggle joints on/off" -c ("ds_rigLib_toggleDisplay(\"joints\");");
+							shelfButton -st "textOnly" -h 20 -l "ikHandles" -ann "toggle ikHandles on/off" -c ("ds_rigLib_toggleDisplay(\"ikHandles\");");
+							shelfButton -st "textOnly" -h 20 -l "handles" -ann "toggle select handles on/off" -c ("ds_rigLib_toggleDisplay(\"handles\");");
+							shelfButton -st "textOnly" -h 20 -l "pivots" -ann "toggle pivots on/off" -c ("ds_rigLib_toggleDisplay(\"pivots\");");
+							shelfButton -st "textOnly" -h 20 -l "planes" -ann "toggle planes on/off" -c ("ds_rigLib_toggleDisplay(\"planes\");");
+							shelfButton -st "textOnly" -h 20 -l "deformers" -ann "toggle deformers on/off" -c ("ds_rigLib_toggleDisplay(\"deformers\");");
+							shelfButton -st "textOnly" -h 20 -l "lights" -ann "toggle lights on/off" -c ("ds_rigLib_toggleDisplay(\"lights\");");
+							shelfButton -st "textOnly" -h 20 -l "cameras" -ann "toggle cameras on/off" -c ("ds_rigLib_toggleDisplay(\"cameras\");");
+							shelfButton -st "textOnly" -h 20 -l "cv" -ann "toggle cv on/off" -c ("ds_rigLib_toggleDisplay(\"cv\");");
+							shelfButton -st "textOnly" -h 20 -l "hulls" -ann "toggle hulls on/off" -c ("ds_rigLib_toggleDisplay(\"hulls\");");
+							shelfButton -st "textOnly" -h 20 -l "dynamics" -ann "toggle dynamics on/off" -c ("ds_rigLib_toggleDisplay(\"dynamics\");");
+							shelfButton -st "textOnly" -h 20 -l "fluids" -ann "toggle fluids on/off" -c ("ds_rigLib_toggleDisplay(\"fluids\");");
+							shelfButton -st "textOnly" -h 20 -l "hair" -ann "toggle hair systems on/off" -c ("ds_rigLib_toggleDisplay(\"hair\");");
+							shelfButton -st "textOnly" -h 20 -l "follicles" -ann "toggle follicles on/off" -c ("ds_rigLib_toggleDisplay(\"follicles\");");
+							shelfButton -st "textOnly" -h 20 -l "dimensions" -ann "toggle dimensions on/off" -c ("ds_rigLib_toggleDisplay(\"dimensions\");");
+							shelfButton -st "textOnly" -h 20 -l "textures" -ann "toggle textures on/off" -c ("ds_rigLib_toggleDisplay(\"textures\");");
+							shelfButton -st "textOnly" -h 20 -l "strokes" -ann "toggle strokes on/off" -c ("ds_rigLib_toggleDisplay(\"strokes\");");
+					
+				// mirror joints form
+				formLayout -p "ds_rigTools_mainForm" -w 100 ds_rigTools_mirrorForm;
+					text -p "ds_rigTools_mirrorForm" -w 100 -l "MIRROR JNTS" -al "center" -ann "allows mirroring of multiple joint chains at once" ds_rigTools_mirrorLabel;
+					radioButtonGrp -p "ds_rigTools_mirrorForm" -nrb 3 -sl 2 -l1 "xy" -l2 "yz" -l3 "xz" -cw3 33 33 33 ds_rigTools_mirrorAxisRBG;
+					checkBox -p "ds_rigTools_mirrorForm" -onc ("checkBox -e -v 0 ds_rigTools_mirrorFuncBehaveCB;") -l "orientation" -v 0 ds_rigTools_mirrorFuncOrientCB;
+					checkBox -p "ds_rigTools_mirrorForm" -onc ("checkBox -e -v 0 ds_rigTools_mirrorFuncOrientCB;") -l "behavior" -v 1 ds_rigTools_mirrorFuncBehaveCB;			
+					text -p "ds_rigTools_mirrorForm" -w 15 -l " S:" -ann "search string" ds_rigTools_mirrorSearchTX;
+					textField -p "ds_rigTools_mirrorForm" ds_rigTools_mirrorSearchTF;
+					text -p "ds_rigTools_mirrorForm" -w 15 -l " R:" -ann "replace string" ds_rigTools_mirrorReplaceTX;
+					textField -p "ds_rigTools_mirrorForm" ds_rigTools_mirrorReplaceTF;
+					button -p "ds_rigTools_mirrorForm" -l "Mirror Joints"  -ann "allows mirroring of multiple joint chains at once" -c ("ds_rigTools_mirrorJntsWrapper();") ds_rigTools_mirrorBtn;
+				
+				separator -p "ds_rigTools_mainForm" -st "single" ds_rigTools_toolsSepC;
+				//	rename section
+				text -p "ds_rigTools_mainForm" -w 475 -al "center" -l "RENAME TOOLS" ds_rigTools_renameToolsTX;
+				
+				separator -p "ds_rigTools_mainForm" -st "double" ds_rigTools_toolsSepD;
+				
+				//	prefix suffix form
+				formLayout -p "ds_rigTools_mainForm" -w 100 ds_rigTools_renamePrefixForm;
+					text -p "ds_rigTools_renamePrefixForm" -w 35 -l " prefix:" -ann "prefix string" ds_rigTools_renamePrefixTX;
+					textField -p "ds_rigTools_renamePrefixForm" ds_rigTools_renamePrefixTF;
+					button -p "ds_rigTools_renamePrefixForm" -l "Add Prefix" -ann "add prefix to selected objects. automatically adds humpback formatting to new name, makes name unique" -c ("ds_rigTools_renameWrapper(\"prefix\");") ds_rigTools_renamePrefixBtn;
+					text -p "ds_rigTools_renamePrefixForm" -w 35 -l " suffix:" -ann "suffix string" ds_rigTools_renameSuffixTX;
+					textField -p "ds_rigTools_renamePrefixForm" ds_rigTools_renameSuffixTF;
+					button -p "ds_rigTools_renamePrefixForm" -l "Add Suffix" -ann "add suffix to selected objects, makes name unique" -c ("ds_rigTools_renameWrapper(\"suffix\");") ds_rigTools_renameSuffixBtn;
+				
+				separator -p "ds_rigTools_mainForm" -st "single" -hr 0 ds_rigTools_toolsSepE;
+				
+				//	search and replace form	
+				formLayout -p "ds_rigTools_mainForm" -w 125 ds_rigTools_renameReplaceForm;
+					text -p "ds_rigTools_renameReplaceForm" -w 45 -l " search:" -ann "search string" ds_rigTools_renameSearchTX;
+					textField -p "ds_rigTools_renameReplaceForm" ds_rigTools_renameSearchTF;
+					text -p "ds_rigTools_renameReplaceForm" -w 45 -l " replace:" -ann "replace string" ds_rigTools_renameReplaceTX;
+					textField -p "ds_rigTools_renameReplaceForm" ds_rigTools_renameReplaceTF;
+					button -p "ds_rigTools_renameReplaceForm" -l "Replace String" -ann "rename selected objects by replacing search string with replace string, makes name unique" -c ("ds_rigTools_renameWrapper(\"replace\");") ds_rigTools_renameReplaceBtn;
+				
+				separator -p "ds_rigTools_mainForm" -st "single" -hr 0 ds_rigTools_toolsSepF;
+				
+				//	rename form
+				formLayout -p "ds_rigTools_mainForm" -w 125 ds_rigTools_renameRenameForm;
+					text -p "ds_rigTools_renameRenameForm" -w 45 -l " rename:" -ann "search string" ds_rigTools_renameRenameTX;
+					textField -p "ds_rigTools_renameRenameForm" ds_rigTools_renameRenameTF;
+					text -p "ds_rigTools_renameRenameForm" -w 45 -l " start #:" -ann "start numbering of new name at this number" ds_rigTools_renameStartTX;
+					intField -p "ds_rigTools_renameRenameForm" -w 50 -v 1 ds_rigTools_renameStartIF;
+					button -p "ds_rigTools_renameRenameForm" -l "Rename" -ann "rename selected objects, adds start number to name, makes name unique" -c ("ds_rigTools_renameWrapper(\"rename\");") ds_rigTools_renameRenameBtn;
+				
+				separator -p "ds_rigTools_mainForm" -st "single" -hr 0 ds_rigTools_toolsSepG;
+				
+				//	rename button form
+				formLayout -p "ds_rigTools_mainForm" -w 100 ds_rigTools_renameButtonForm;
+					button -p "ds_rigTools_renameButtonForm" -l "To Upper" -ann "rename selected objects with their current names but in all upper case" -c ("ds_rigTools_renameWrapper(\"upper\");") ds_rigTools_renameUpperBtn;	
+					button -p "ds_rigTools_renameButtonForm" -l "To Lower" -ann "rename selected objects with their current names but in all lower case" -c ("ds_rigTools_renameWrapper(\"lower\");") ds_rigTools_renameLowerBtn;
+					button -p "ds_rigTools_renameButtonForm" -l "Unique Shapes All" -ann "renames all curve shapeNodes to match transform naming and be unique" -c ("ds_rigLib_renameShapes({\"*\"});") ds_rigTools_uniqueAllBtn;
+					button -p "ds_rigTools_renameButtonForm" -l "Unique Shapes Sel" -ann "renames selected curve shapeNodes to match transform naming and be unique" -c ("ds_rigLib_renameShapes({});") ds_rigTools_uniqueSelBtn;
+				
+				separator -p "ds_rigTools_mainForm" -st "single" ds_rigTools_toolsSepH;
+				
+				//	 email form
+				formLayout -p "ds_rigTools_mainForm" -w 250 ds_rigTools_emailForm;
+					shelfButton -p "ds_rigTools_emailForm" -st "textOnly" -l "www.damonshelton.com" -w 126 -h 20 -c ("showHelp -a \"http://www.damonshelton.com\"; ") ds_rigTools_websiteBtn;
+										
+				formLayout -e
+				
+					-af ds_rigTools_colorGrid "top" 1
+					-an ds_rigTools_colorGrid "bottom"
+					-af ds_rigTools_colorGrid "left" 1
+					-an ds_rigTools_colorGrid "right" 
+								
+					-ac ds_rigTools_canvasDefault "top" 2 ds_rigTools_colorGrid
+					-an ds_rigTools_canvasDefault "bottom"
+					-af ds_rigTools_canvasDefault "left" 1
+					-an ds_rigTools_canvasDefault "right" 
+					
+					-ac ds_rigTools_defaultColorCB "top" 2 ds_rigTools_canvasDefault
+					-an ds_rigTools_defaultColorCB "bottom"
+					-af ds_rigTools_defaultColorCB "left" 1
+					-an ds_rigTools_defaultColorCB "right" 
+					
+				ds_rigTools_colorForm;
+				
+				
+				
+				formLayout -e
+					
+					-af ds_rigTools_ctrlLabel "top" 1
+					-an ds_rigTools_ctrlLabel "bottom"
+					-af ds_rigTools_ctrlLabel "left" 1 
+					-an ds_rigTools_ctrlLabel "right" 
+			
+					-ac ds_rigTools_ctrlScroll "top" 1 ds_rigTools_ctrlLabel
+					-af ds_rigTools_ctrlScroll "bottom" 1
+					-af ds_rigTools_ctrlScroll "left" 1 
+					-an ds_rigTools_ctrlScroll "right"
+								
+				ds_rigTools_ctrlForm;
+					
+				formLayout -e
+								
+					-af ds_rigTools_extrasLabel "top" 1 
+					-an ds_rigTools_extrasLabel "bottom"
+					-af ds_rigTools_extrasLabel "left" 1 
+					-an ds_rigTools_extrasLabel "right" 
+			
+					-ac ds_rigTools_extrasScroll "top" 1 ds_rigTools_extrasLabel
+					-af ds_rigTools_extrasScroll "bottom" 1
+					-af ds_rigTools_extrasScroll "left" 1 
+					-an ds_rigTools_extrasScroll "right"
+					
+				ds_rigTools_extrasForm;
+				
+				
+				
+				formLayout -e
+				
+					-af ds_rigTools_nameTX "top" 5 
+					-an ds_rigTools_nameTX "bottom"
+					-af ds_rigTools_nameTX "left" 1
+					-an ds_rigTools_nameTX "right"
+			
+					-af ds_rigTools_nameTF "top" 3
+					-an ds_rigTools_nameTF "bottom"
+					-ac ds_rigTools_nameTF "left" 1 ds_rigTools_nameTX
+					-af ds_rigTools_nameTF "right" 1
+					
+					-ac ds_rigTools_nameSep "top" 3 ds_rigTools_nameTF
+					-an ds_rigTools_nameSep "bottom"
+					-af ds_rigTools_nameSep "left" 0
+					-af ds_rigTools_nameSep "right" 0
+					
+				ds_rigTools_nameForm;
+				
+			if(`about -windows`)
+				{
+				formLayout -e
+									
+					-af ds_rigTools_txCurveLabel "top" 1 
+					-an ds_rigTools_txCurveLabel "bottom"
+					-af ds_rigTools_txCurveLabel "left" 1
+					-af ds_rigTools_txCurveLabel "right" 1
+					
+					-ac ds_rigTools_txCurveTXText "top" 4 ds_rigTools_txCurveLabel
+					-an ds_rigTools_txCurveTXText "bottom"
+					-af ds_rigTools_txCurveTXText "left" 1
+					-an ds_rigTools_txCurveTXText "right" 
+			
+					-ac ds_rigTools_txCurveTFText "top" 3 ds_rigTools_txCurveLabel
+					-an ds_rigTools_txCurveTFText "bottom"
+					-ac ds_rigTools_txCurveTFText "left" 1 ds_rigTools_txCurveTXText
+					-af ds_rigTools_txCurveTFText "right" 1 
+					
+					-ac ds_rigTools_txCurveTXFont "top" 5 ds_rigTools_txCurveTFText
+					-an ds_rigTools_txCurveTXFont "bottom"
+					-af ds_rigTools_txCurveTXFont "left" 1
+					-an ds_rigTools_txCurveTXFont "right"  
+			
+					-ac ds_rigTools_txCurveTFFont "top" 3 ds_rigTools_txCurveTFText
+					-an ds_rigTools_txCurveTFFont "bottom"
+					-ac ds_rigTools_txCurveTFFont "left" 1 ds_rigTools_txCurveTXFont
+					-af ds_rigTools_txCurveTFFont "right" 1  
+					
+					-ac ds_rigTools_txCurveTXWeight "top" 5 ds_rigTools_txCurveTFFont
+					-an ds_rigTools_txCurveTXWeight "bottom"
+					-af ds_rigTools_txCurveTXWeight "left" 1
+					-an ds_rigTools_txCurveTXWeight "right"
+			
+					-ac ds_rigTools_txCurveTFWeight "top" 3 ds_rigTools_txCurveTFFont
+					-an ds_rigTools_txCurveTFWeight "bottom"
+					-ac ds_rigTools_txCurveTFWeight "left" 1 ds_rigTools_txCurveTXWeight
+					-an ds_rigTools_txCurveTFWeight "right" 
+					
+					-ac ds_rigTools_txCurveTXSize "top" 5 ds_rigTools_txCurveTFFont
+					-an ds_rigTools_txCurveTXSize "bottom"
+					-ac ds_rigTools_txCurveTXSize "left" 1 ds_rigTools_txCurveTFWeight
+					-an ds_rigTools_txCurveTXSize "right"
+			
+					-ac ds_rigTools_txCurveTFSize "top" 3 ds_rigTools_txCurveTFFont
+					-an ds_rigTools_txCurveTFSize "bottom"
+					-ac ds_rigTools_txCurveTFSize "left" 1 ds_rigTools_txCurveTXSize
+					-af ds_rigTools_txCurveTFSize "right" 1 
+				
+					-ac ds_rigTools_txCurveCBBorder "top" 3 ds_rigTools_txCurveTFWeight
+					-an ds_rigTools_txCurveCBBorder "bottom"
+					-af ds_rigTools_txCurveCBBorder "left" 1
+					-an ds_rigTools_txCurveCBBorder "right" 
+					
+					-ac ds_rigTools_txCurveCBSeparate "top" 3 ds_rigTools_txCurveTFWeight
+					-an ds_rigTools_txCurveCBSeparate "bottom"
+					-ac ds_rigTools_txCurveCBSeparate "left" 1 ds_rigTools_txCurveCBBorder
+					-an ds_rigTools_txCurveCBSeparate "right" 
+					
+					-ac ds_rigTools_txCurveCBSepLet "top" 3 ds_rigTools_txCurveTFWeight
+					-an ds_rigTools_txCurveCBSepLet "bottom"
+					-ac ds_rigTools_txCurveCBSepLet "left" 1 ds_rigTools_txCurveCBSeparate
+					-af ds_rigTools_txCurveCBSepLet "right" 1
+					
+					-ac ds_rigTools_txCurveTXDist "top" 5 ds_rigTools_txCurveCBBorder
+					-an ds_rigTools_txCurveTXDist "bottom"
+					-af ds_rigTools_txCurveTXDist "left" 1
+					-an ds_rigTools_txCurveTXDist "right"
+			
+					-ac ds_rigTools_txCurveFFDist "top" 3 ds_rigTools_txCurveCBBorder
+					-an ds_rigTools_txCurveFFDist "bottom"
+					-ac ds_rigTools_txCurveFFDist "left" 1 ds_rigTools_txCurveTXDist
+					-af ds_rigTools_txCurveFFDist "right" 1
+					
+					-ac ds_rigTools_txCurveBtn "top" 3 ds_rigTools_txCurveFFDist
+					-an ds_rigTools_txCurveBtn "bottom"
+					-af ds_rigTools_txCurveBtn "left" 1
+					-af ds_rigTools_txCurveBtn "right" 1
+					
+					-ac ds_rigTools_txCurveSep "top" 3 ds_rigTools_txCurveBtn
+					-an ds_rigTools_txCurveSep "bottom"
+					-af ds_rigTools_txCurveSep "left" 0
+					-af ds_rigTools_txCurveSep "right" 0
+									
+				ds_rigTools_txCurveForm;
+				}
+			else
+				{
+				formLayout -e
+									
+					-af ds_rigTools_txCurveLabel "top" 1 
+					-an ds_rigTools_txCurveLabel "bottom"
+					-af ds_rigTools_txCurveLabel "left" 1
+					-af ds_rigTools_txCurveLabel "right" 1
+					
+					-ac ds_rigTools_txCurveTXText "top" 4 ds_rigTools_txCurveLabel
+					-an ds_rigTools_txCurveTXText "bottom"
+					-af ds_rigTools_txCurveTXText "left" 1
+					-an ds_rigTools_txCurveTXText "right" 
+			
+					-ac ds_rigTools_txCurveTFText "top" 3 ds_rigTools_txCurveLabel
+					-an ds_rigTools_txCurveTFText "bottom"
+					-ac ds_rigTools_txCurveTFText "left" 1 ds_rigTools_txCurveTXText
+					-af ds_rigTools_txCurveTFText "right" 1 
+					
+					-ac ds_rigTools_txCurveTXFont "top" 5 ds_rigTools_txCurveTFText
+					-an ds_rigTools_txCurveTXFont "bottom"
+					-af ds_rigTools_txCurveTXFont "left" 1
+					-an ds_rigTools_txCurveTXFont "right"  
+			
+					-ac ds_rigTools_txCurveTFFont "top" 3 ds_rigTools_txCurveTFText
+					-an ds_rigTools_txCurveTFFont "bottom"
+					-ac ds_rigTools_txCurveTFFont "left" 1 ds_rigTools_txCurveTXFont
+					-af ds_rigTools_txCurveTFFont "right" 1  
+									
+					-ac ds_rigTools_txCurveCBBorder "top" 3 ds_rigTools_txCurveTFFont
+					-an ds_rigTools_txCurveCBBorder "bottom"
+					-af ds_rigTools_txCurveCBBorder "left" 1
+					-an ds_rigTools_txCurveCBBorder "right" 
+					
+					-ac ds_rigTools_txCurveCBSeparate "top" 3 ds_rigTools_txCurveTFFont
+					-an ds_rigTools_txCurveCBSeparate "bottom"
+					-ac ds_rigTools_txCurveCBSeparate "left" 1 ds_rigTools_txCurveCBBorder
+					-an ds_rigTools_txCurveCBSeparate "right" 
+					
+					-ac ds_rigTools_txCurveCBSepLet "top" 3 ds_rigTools_txCurveTFFont
+					-an ds_rigTools_txCurveCBSepLet "bottom"
+					-ac ds_rigTools_txCurveCBSepLet "left" 1 ds_rigTools_txCurveCBSeparate
+					-af ds_rigTools_txCurveCBSepLet "right" 1
+					
+					-ac ds_rigTools_txCurveTXDist "top" 5 ds_rigTools_txCurveCBBorder
+					-an ds_rigTools_txCurveTXDist "bottom"
+					-af ds_rigTools_txCurveTXDist "left" 1
+					-an ds_rigTools_txCurveTXDist "right"
+			
+					-ac ds_rigTools_txCurveFFDist "top" 3 ds_rigTools_txCurveCBBorder
+					-an ds_rigTools_txCurveFFDist "bottom"
+					-ac ds_rigTools_txCurveFFDist "left" 1 ds_rigTools_txCurveTXDist
+					-af ds_rigTools_txCurveFFDist "right" 1
+					
+					-ac ds_rigTools_txCurveBtn "top" 3 ds_rigTools_txCurveFFDist
+					-an ds_rigTools_txCurveBtn "bottom"
+					-af ds_rigTools_txCurveBtn "left" 1
+					-af ds_rigTools_txCurveBtn "right" 1
+					
+					-ac ds_rigTools_txCurveSep "top" 3 ds_rigTools_txCurveBtn
+					-an ds_rigTools_txCurveSep "bottom"
+					-af ds_rigTools_txCurveSep "left" 0
+					-af ds_rigTools_txCurveSep "right" 0
+									
+				ds_rigTools_txCurveForm;
+				}
+				
+				formLayout -e
+					
+					-af ds_rigTools_combineCurveBtn "top" 2 
+					-an ds_rigTools_combineCurveBtn "bottom"
+					-af ds_rigTools_combineCurveBtn "left" 1
+					-af ds_rigTools_combineCurveBtn "right" 1
+					
+					-ac ds_rigTools_combineSep "top" 3 ds_rigTools_combineCurveBtn
+					-an ds_rigTools_combineSep "bottom"
+					-af ds_rigTools_combineSep "left" 0
+					-af ds_rigTools_combineSep "right" 0
+					
+				ds_rigTools_combineForm;
+					
+				formLayout -e
+								
+					-af ds_rigTools_resizeFSG "top" 1 
+					-an ds_rigTools_resizeFSG "bottom"
+					-af ds_rigTools_resizeFSG "left" 1
+					-an ds_rigTools_resizeFSG "right"
+					
+					-ac ds_rigTools_resizeCBG "top" 1 ds_rigTools_resizeFSG
+					-an ds_rigTools_resizeCBG "bottom"
+					-af ds_rigTools_resizeCBG "left" 1
+					-af ds_rigTools_resizeCBG "right" 1
+					
+					-ac ds_rigTools_resizeBtn "top" 1 ds_rigTools_resizeCBG
+					-an ds_rigTools_resizeBtn "bottom"
+					-af ds_rigTools_resizeBtn "left" 1
+					-af ds_rigTools_resizeBtn "right" 1
+					
+					-ac ds_rigTools_resizeSep "top" 3 ds_rigTools_resizeBtn
+					-an ds_rigTools_resizeSep "bottom"
+					-af ds_rigTools_resizeSep "left" 0
+					-af ds_rigTools_resizeSep "right" 0
+					
+				ds_rigTools_resizeForm;
+					
+				formLayout -e
+					
+					-af ds_rigTools_shapeVisMasterTX "top" 3 
+					-an ds_rigTools_shapeVisMasterTX "bottom"
+					-af ds_rigTools_shapeVisMasterTX "left" 1
+					-an ds_rigTools_shapeVisMasterTX "right"
+			
+					-af ds_rigTools_shapeVisMasterTF "top" 1 
+					-an ds_rigTools_shapeVisMasterTF "bottom"
+					-ac ds_rigTools_shapeVisMasterTF "left" 1 ds_rigTools_shapeVisMasterTX
+					-an ds_rigTools_shapeVisMasterTF "right" 
+					
+					-af ds_rigTools_shapeVisMasterBtn "top" 1 
+					-an ds_rigTools_shapeVisMasterBtn "bottom"
+					-ac ds_rigTools_shapeVisMasterBtn "left" 1 ds_rigTools_shapeVisMasterTF
+					-af ds_rigTools_shapeVisMasterBtn "right" 1
+					
+					-ac ds_rigTools_shapeVisAttrTX "top" 5 ds_rigTools_shapeVisMasterTF
+					-an ds_rigTools_shapeVisAttrTX "bottom"
+					-af ds_rigTools_shapeVisAttrTX "left" 1
+					-an ds_rigTools_shapeVisAttrTX "right"
+			
+					-ac ds_rigTools_shapeVisAttrTF "top" 3 ds_rigTools_shapeVisMasterTF
+					-an ds_rigTools_shapeVisAttrTF "bottom"
+					-ac ds_rigTools_shapeVisAttrTF "left" 1 ds_rigTools_shapeVisAttrTX
+					-af ds_rigTools_shapeVisAttrTF "right" 1
+					
+					-ac ds_rigTools_shapeVisBtn "top" 2 ds_rigTools_shapeVisAttrTF
+					-an ds_rigTools_shapeVisBtn "bottom"
+					-af ds_rigTools_shapeVisBtn "left" 1
+					-af ds_rigTools_shapeVisBtn "right" 1
+					
+				ds_rigTools_shapeVisForm;
+				
+				
+				
+				formLayout -e
+					
+					-af ds_rigTools_toggleLabel "top" 1
+					-an ds_rigTools_toggleLabel "bottom"
+					-af ds_rigTools_toggleLabel "left" 1 
+					-an ds_rigTools_toggleLabel "right" 
+			
+					-ac ds_rigTools_toggleScroll "top" 1 ds_rigTools_toggleLabel
+					-af ds_rigTools_toggleScroll "bottom" 1
+					-af ds_rigTools_toggleScroll "left" 1 
+					-an ds_rigTools_toggleScroll "right"
+					
+				ds_rigTools_toggleForm;
+					
+				formLayout -e
+					
+					-af ds_rigTools_mirrorLabel "top" 1 
+					-an ds_rigTools_mirrorLabel "bottom"
+					-af ds_rigTools_mirrorLabel "left" 1 
+					-an ds_rigTools_mirrorLabel "right"
+					
+					-ac ds_rigTools_mirrorAxisRBG "top" 1 ds_rigTools_mirrorLabel
+					-an ds_rigTools_mirrorAxisRBG "bottom"
+					-af ds_rigTools_mirrorAxisRBG "left" 3 
+					-an ds_rigTools_mirrorAxisRBG "right"
+					
+					-ac ds_rigTools_mirrorFuncOrientCB "top" 2 ds_rigTools_mirrorAxisRBG
+					-an ds_rigTools_mirrorFuncOrientCB "bottom"
+					-af ds_rigTools_mirrorFuncOrientCB "left" 3 
+					-an ds_rigTools_mirrorFuncOrientCB "right"
+					
+					-ac ds_rigTools_mirrorFuncBehaveCB "top" 2 ds_rigTools_mirrorFuncOrientCB
+					-an ds_rigTools_mirrorFuncBehaveCB "bottom"
+					-af ds_rigTools_mirrorFuncBehaveCB "left" 3 
+					-an ds_rigTools_mirrorFuncBehaveCB "right"
+					
+					-ac ds_rigTools_mirrorSearchTX "top" 4 ds_rigTools_mirrorFuncBehaveCB
+					-an ds_rigTools_mirrorSearchTX "bottom"
+					-af ds_rigTools_mirrorSearchTX "left" 1 
+					-an ds_rigTools_mirrorSearchTX "right" 
+					
+					-ac ds_rigTools_mirrorSearchTF "top" 2 ds_rigTools_mirrorFuncBehaveCB
+					-an ds_rigTools_mirrorSearchTF "bottom"
+					-ac ds_rigTools_mirrorSearchTF "left" 1 ds_rigTools_mirrorSearchTX
+					-af ds_rigTools_mirrorSearchTF "right" 1
+					
+					-ac ds_rigTools_mirrorReplaceTX "top" 4 ds_rigTools_mirrorSearchTF
+					-an ds_rigTools_mirrorReplaceTX "bottom"
+					-af ds_rigTools_mirrorReplaceTX "left" 1 
+					-an ds_rigTools_mirrorReplaceTX "right" 
+					
+					-ac ds_rigTools_mirrorReplaceTF "top" 2 ds_rigTools_mirrorSearchTF
+					-an ds_rigTools_mirrorReplaceTF "bottom"
+					-ac ds_rigTools_mirrorReplaceTF "left" 1 ds_rigTools_mirrorReplaceTX
+					-af ds_rigTools_mirrorReplaceTF "right" 1
+					
+					-ac ds_rigTools_mirrorBtn "top" 2 ds_rigTools_mirrorReplaceTF
+					-an ds_rigTools_mirrorBtn "bottom"
+					-af ds_rigTools_mirrorBtn "left" 1 
+					-af ds_rigTools_mirrorBtn "right" 1
+					
+				ds_rigTools_mirrorForm;
+			
+				
+				formLayout -e
+				
+					-af ds_rigTools_renamePrefixTX "top" 5 
+					-an ds_rigTools_renamePrefixTX "bottom"
+					-af ds_rigTools_renamePrefixTX "left" 1
+					-an ds_rigTools_renamePrefixTX "right"
+			
+					-af ds_rigTools_renamePrefixTF "top" 3
+					-an ds_rigTools_renamePrefixTF "bottom"
+					-ac ds_rigTools_renamePrefixTF "left" 1 ds_rigTools_renamePrefixTX
+					-af ds_rigTools_renamePrefixTF "right" 1
+					
+					-ac ds_rigTools_renamePrefixBtn "top" 3 ds_rigTools_renamePrefixTF
+					-an ds_rigTools_renamePrefixBtn "bottom"
+					-af ds_rigTools_renamePrefixBtn "left" 1
+					-af ds_rigTools_renamePrefixBtn "right" 1
+					
+					-ac ds_rigTools_renameSuffixTX "top" 5 ds_rigTools_renamePrefixBtn
+					-an ds_rigTools_renameSuffixTX "bottom"
+					-af ds_rigTools_renameSuffixTX "left" 1
+					-an ds_rigTools_renameSuffixTX "right"
+			
+					-ac ds_rigTools_renameSuffixTF "top" 3 ds_rigTools_renamePrefixBtn
+					-an ds_rigTools_renameSuffixTF "bottom"
+					-ac ds_rigTools_renameSuffixTF "left" 1 ds_rigTools_renameSuffixTX
+					-af ds_rigTools_renameSuffixTF "right" 1
+					
+					-ac ds_rigTools_renameSuffixBtn "top" 3 ds_rigTools_renameSuffixTF
+					-an ds_rigTools_renameSuffixBtn "bottom"
+					-af ds_rigTools_renameSuffixBtn "left" 1
+					-af ds_rigTools_renameSuffixBtn "right" 1
+					
+				ds_rigTools_renamePrefixForm;
+				
+				
+				formLayout -e
+				
+					-af ds_rigTools_renameSearchTX "top" 5 
+					-an ds_rigTools_renameSearchTX "bottom"
+					-af ds_rigTools_renameSearchTX "left" 1
+					-an ds_rigTools_renameSearchTX "right"
+			
+					-af ds_rigTools_renameSearchTF "top" 3
+					-an ds_rigTools_renameSearchTF "bottom"
+					-ac ds_rigTools_renameSearchTF "left" 1 ds_rigTools_renameSearchTX
+					-af ds_rigTools_renameSearchTF "right" 1
+					
+					-ac ds_rigTools_renameReplaceTX "top" 5 ds_rigTools_renameSearchTF
+					-an ds_rigTools_renameReplaceTX "bottom"
+					-af ds_rigTools_renameReplaceTX "left" 1
+					-an ds_rigTools_renameReplaceTX "right"
+			
+					-ac ds_rigTools_renameReplaceTF "top" 3 ds_rigTools_renameSearchTF
+					-an ds_rigTools_renameReplaceTF "bottom"
+					-ac ds_rigTools_renameReplaceTF "left" 1 ds_rigTools_renameReplaceTX
+					-af ds_rigTools_renameReplaceTF "right" 1
+					
+					-ac ds_rigTools_renameReplaceBtn "top" 3 ds_rigTools_renameReplaceTF
+					-an ds_rigTools_renameReplaceBtn "bottom"
+					-af ds_rigTools_renameReplaceBtn "left" 1
+					-af ds_rigTools_renameReplaceBtn "right" 1
+					
+				ds_rigTools_renameReplaceForm;
+				
+				
+				formLayout -e
+				
+					-af ds_rigTools_renameRenameTX "top" 5 
+					-an ds_rigTools_renameRenameTX "bottom"
+					-af ds_rigTools_renameRenameTX "left" 1
+					-an ds_rigTools_renameRenameTX "right"
+			
+					-af ds_rigTools_renameRenameTF "top" 3
+					-an ds_rigTools_renameRenameTF "bottom"
+					-ac ds_rigTools_renameRenameTF "left" 1 ds_rigTools_renameRenameTX
+					-af ds_rigTools_renameRenameTF "right" 1
+					
+					-ac ds_rigTools_renameStartTX "top" 5 ds_rigTools_renameRenameTF
+					-an ds_rigTools_renameStartTX "bottom"
+					-af ds_rigTools_renameStartTX "left" 1
+					-an ds_rigTools_renameStartTX "right"
+			
+					-ac ds_rigTools_renameStartIF "top" 3 ds_rigTools_renameRenameTF
+					-an ds_rigTools_renameStartIF "bottom"
+					-ac ds_rigTools_renameStartIF "left" 1 ds_rigTools_renameStartTX
+					-an ds_rigTools_renameStartIF "right" 
+					
+					-ac ds_rigTools_renameRenameBtn "top" 3 ds_rigTools_renameStartIF
+					-an ds_rigTools_renameRenameBtn "bottom"
+					-af ds_rigTools_renameRenameBtn "left" 1
+					-af ds_rigTools_renameRenameBtn "right" 1
+					
+				ds_rigTools_renameRenameForm;
+				
+				
+				formLayout -e
+									
+					-af ds_rigTools_renameUpperBtn "top" 3 
+					-an ds_rigTools_renameUpperBtn "bottom"
+					-af ds_rigTools_renameUpperBtn "left" 1
+					-af ds_rigTools_renameUpperBtn "right" 1
+					
+					-ac ds_rigTools_renameLowerBtn "top" 3 ds_rigTools_renameUpperBtn
+					-an ds_rigTools_renameLowerBtn "bottom"
+					-af ds_rigTools_renameLowerBtn "left" 1
+					-af ds_rigTools_renameLowerBtn "right" 1
+					
+					-ac ds_rigTools_uniqueAllBtn "top" 3 ds_rigTools_renameLowerBtn
+					-an ds_rigTools_uniqueAllBtn "bottom"
+					-af ds_rigTools_uniqueAllBtn "left" 1
+					-af ds_rigTools_uniqueAllBtn "right" 1
+					
+					-ac ds_rigTools_uniqueSelBtn "top" 3 ds_rigTools_uniqueAllBtn
+					-an ds_rigTools_uniqueSelBtn "bottom"
+					-af ds_rigTools_uniqueSelBtn "left" 1
+					-af ds_rigTools_uniqueSelBtn "right" 1
+					
+				ds_rigTools_renameButtonForm;
+				
+				formLayout -e
+									
+					-af ds_rigTools_websiteBtn "top" 1 
+					-an ds_rigTools_websiteBtn "bottom"
+					-af ds_rigTools_websiteBtn "left" 1
+					-af ds_rigTools_websiteBtn "right" 1
+															
+				ds_rigTools_emailForm;
+				
+				
+			//	tools main form		
+			formLayout -e
+				
+				-af ds_rigTools_colorForm "top" 2
+				-an ds_rigTools_colorForm "bottom"
+				-af ds_rigTools_colorForm "left" 3
+				-ac ds_rigTools_colorForm "right" 0 ds_rigTools_ctrlForm
+				
+				
+				
+				-af ds_rigTools_ctrlForm "top" 1 
+				-an ds_rigTools_ctrlForm "bottom"
+				-af ds_rigTools_ctrlForm "left" 45
+				-an ds_rigTools_ctrlForm "right"
+				
+				-ac ds_rigTools_extrasForm "top" 1 ds_rigTools_ctrlForm
+				-an ds_rigTools_extrasForm "bottom"
+				-af ds_rigTools_extrasForm "left" 45
+				-an ds_rigTools_extrasForm "right"
+				
+				
+				
+				-af ds_rigTools_toolsSepA "top" 30 
+				-ac ds_rigTools_toolsSepA "bottom" 0 ds_rigTools_toolsSepC
+				-af ds_rigTools_toolsSepA "left" 148
+				-ac ds_rigTools_toolsSepA "right" 0 ds_rigTools_nameForm
+				
+				
+				
+				-af ds_rigTools_nameForm "top" 1
+				-an ds_rigTools_nameForm "bottom"
+				-af ds_rigTools_nameForm "left" 155
+				-ac ds_rigTools_nameForm "right" 8 ds_rigTools_toggleForm
+				
+				-ac ds_rigTools_txCurveForm "top" 1 ds_rigTools_nameForm
+				-an ds_rigTools_txCurveForm "bottom"
+				-af ds_rigTools_txCurveForm "left" 155
+				-ac ds_rigTools_txCurveForm "right" 8 ds_rigTools_toggleForm
+				
+				-ac ds_rigTools_combineForm "top" 1 ds_rigTools_txCurveForm
+				-an ds_rigTools_combineForm "bottom"
+				-af ds_rigTools_combineForm "left" 155
+				-ac ds_rigTools_combineForm "right" 8 ds_rigTools_toggleForm
+				
+				-ac ds_rigTools_resizeForm "top" 1 ds_rigTools_combineForm
+				-an ds_rigTools_resizeForm "bottom"
+				-af ds_rigTools_resizeForm "left" 155
+				-ac ds_rigTools_resizeForm "right" 8 ds_rigTools_mirrorForm
+				
+				-ac ds_rigTools_shapeVisForm "top" 1 ds_rigTools_resizeForm
+				-an ds_rigTools_shapeVisForm "bottom"
+				-af ds_rigTools_shapeVisForm "left" 155
+				-ac ds_rigTools_shapeVisForm "right" 8 ds_rigTools_mirrorForm
+				
+				
+				
+				-af ds_rigTools_toolsSepB "top" 30 
+				-ac ds_rigTools_toolsSepB "bottom" 0 ds_rigTools_toolsSepC
+				-af ds_rigTools_toolsSepB "left" 361
+				-ac ds_rigTools_toolsSepB "right" 0 ds_rigTools_toggleForm
+				
+				
+				
+				-af ds_rigTools_toggleForm "top" 1 
+				-an ds_rigTools_toggleForm "bottom"
+				-af ds_rigTools_toggleForm "left" 368
+				-an ds_rigTools_toggleForm "right" 
+				
+				-ac ds_rigTools_mirrorForm "top" 1 ds_rigTools_toggleForm
+				-an ds_rigTools_mirrorForm "bottom"
+				-af ds_rigTools_mirrorForm "left" 368
+				-an ds_rigTools_mirrorForm "right"
+				
+				
+				
+				-ac ds_rigTools_toolsSepC "top" 2 ds_rigTools_shapeVisForm
+				-an ds_rigTools_toolsSepC "bottom" 
+				-af ds_rigTools_toolsSepC "left" 1
+				-af ds_rigTools_toolsSepC "right" 1 
+				
+				
+				
+				-ac ds_rigTools_renameToolsTX "top" 3 ds_rigTools_toolsSepC 
+				-an ds_rigTools_renameToolsTX "bottom"
+				-af ds_rigTools_renameToolsTX "left" 1
+				-af ds_rigTools_renameToolsTX "right" 1
+				
+				
+				
+				-ac ds_rigTools_toolsSepD "top" 2 ds_rigTools_renameToolsTX
+				-an ds_rigTools_toolsSepD "bottom" 
+				-af ds_rigTools_toolsSepD "left" 1
+				-af ds_rigTools_toolsSepD "right" 1
+				
+				
+				
+				-ac ds_rigTools_renamePrefixForm "top" 3 ds_rigTools_toolsSepD 
+				-an ds_rigTools_renamePrefixForm "bottom"
+				-af ds_rigTools_renamePrefixForm "left" 1
+				-ac ds_rigTools_renamePrefixForm "right" 1 ds_rigTools_renameReplaceForm
+				
+				
+				-ac ds_rigTools_toolsSepE "top" 0 ds_rigTools_toolsSepD
+				-af ds_rigTools_toolsSepE "bottom" 0 
+				-af ds_rigTools_toolsSepE "left" 103
+				-ac ds_rigTools_toolsSepE "right" 0 ds_rigTools_renameReplaceForm
+				
+				
+				-ac ds_rigTools_renameReplaceForm "top" 3 ds_rigTools_toolsSepD 
+				-an ds_rigTools_renameReplaceForm "bottom"
+				-af ds_rigTools_renameReplaceForm "left" 105
+				-ac ds_rigTools_renameReplaceForm "right" 1 ds_rigTools_renameRenameForm
+				
+				
+				-ac ds_rigTools_toolsSepF "top" 0 ds_rigTools_toolsSepD
+				-ac ds_rigTools_toolsSepF "bottom" 0 ds_rigTools_toolsSepH
+				-af ds_rigTools_toolsSepF "left" 233
+				-ac ds_rigTools_toolsSepF "right" 0 ds_rigTools_renameRenameForm
+				
+				
+				-ac ds_rigTools_renameRenameForm "top" 3 ds_rigTools_toolsSepD 
+				-an ds_rigTools_renameRenameForm "bottom"
+				-af ds_rigTools_renameRenameForm "left" 235
+				-ac ds_rigTools_renameRenameForm "right" 1 ds_rigTools_toolsSepG
+				
+				
+				-ac ds_rigTools_toolsSepG "top" 0 ds_rigTools_toolsSepD
+				-af ds_rigTools_toolsSepG "bottom" 0 
+				-af ds_rigTools_toolsSepG "left" 367
+				-ac ds_rigTools_toolsSepG "right" 0 ds_rigTools_renameButtonForm
+				
+				
+				-ac ds_rigTools_renameButtonForm "top" 3 ds_rigTools_toolsSepD 
+				-an ds_rigTools_renameButtonForm "bottom"
+				-af ds_rigTools_renameButtonForm "left" 370
+				-an ds_rigTools_renameButtonForm "right"
+				
+				
+				
+				-ac ds_rigTools_toolsSepH "top" 2 ds_rigTools_renameReplaceForm
+				-an ds_rigTools_toolsSepH "bottom" 
+				-ac ds_rigTools_toolsSepH "left" 0 ds_rigTools_toolsSepE
+				-ac ds_rigTools_toolsSepH "right" 0 ds_rigTools_toolsSepG
+				
+				
+				
+				-ac ds_rigTools_emailForm "top" 0 ds_rigTools_toolsSepH 
+				-an ds_rigTools_emailForm "bottom"
+				-af ds_rigTools_emailForm "left" 105
+				-ac ds_rigTools_emailForm "right" 1 ds_rigTools_toolsSepG
+				
+			ds_rigTools_mainForm;
+			
+		
+		showWindow ds_rigTools_win;
+		window -e -w 480 -h 535 ds_rigTools_win;
+		}
+	else
+		{
+		showWindow ds_rigTools_win;
+		}
+}
+
+// --------------------------------------------------------------------------
+// WRAPPER PROC
+// --------------------------------------------------------------------------
+
+//	**ds_rigTools_tfLoad - adds selected objects into specified textField
+global proc ds_rigTools_tfLoad(string $tf)
+{
+    string $objs[]=`ls -sl`;
+	string $text=$objs[0];
+	
+    textField -e -tx $text $tf;
+	string $attrs[];
+	if($tf=="ds_rigTools_shapeVisMasterTF")
+		{
+		$attrs=`listAttr -ud $text`;
+		if(size($attrs)>0)
+			{
+			popupMenu -p ds_rigTools_shapeVisAttrTF;
+				for($a=0;$a<size($attrs);++$a)
+					{
+					menuItem -l $attrs[$a] -c ("textField -e -tx "+$attrs[$a]+" ds_rigTools_shapeVisAttrTF;");
+					}
+			}
+		}
+}
+
+//	**ds_rigTools_curveCreateWrapper - gathers necessary info to send to main proc 
+global proc ds_rigTools_curveCreateWrapper(string $case)
+{
+	int $doColor=`checkBox -q -v ds_rigTools_defaultColorCB`;
+	string $color=`canvas -q -ann ds_rigTools_canvasDefault`;
+	string $name=`textField -q -tx ds_rigTools_nameTF`;
+	ds_rigLib_ctrlShapes($name, {}, $case, 1, 1, 1, 1, 1, $doColor, $color);
+}
+
+//	**ds_rigTools_txCurveWrapper - gathers necessary info to send to main proc
+global proc ds_rigTools_txCurveWrapper()
+{
+	string $text=`textField -q -tx ds_rigTools_txCurveTFText`;
+	string $font=`textField -q -tx ds_rigTools_txCurveTFFont`;
+	string $weight=`textField -q -tx ds_rigTools_txCurveTFWeight`;
+	int $size=`textField -q -tx ds_rigTools_txCurveTFSize`;
+	string $cases[]={"regular", "bold", "italic", "bold italic"};
+	string $name=`textField -q -tx ds_rigTools_nameTF`;
+	isValidObjectName($name);
+	int $border=`checkBox -q -v ds_rigTools_txCurveCBBorder`;
+	int $separate=`checkBox -q -v ds_rigTools_txCurveCBSeparate`;
+	int $sepLet=`checkBox -q -v ds_rigTools_txCurveCBSepLet`;
+	float $borderDist=`floatField -q -v ds_rigTools_txCurveFFDist`;
+	int $doColor=`checkBox -q -v ds_rigTools_defaultColorCB`;
+	string $color=`canvas -q -ann ds_rigTools_canvasDefault`;
+	ds_rigLib_textCurve($text, $font, $weight, $size, $name, $border, $separate, $sepLet, $borderDist, $doColor, $color);
+}
+
+//	**ds_rigTools_txCurveWrapper - gathers necessary info to send to main proc
+global proc ds_rigTools_resizeWrapper()
+{
+	float $scale=`floatSliderGrp -q -v ds_rigTools_resizeFSG`;
+	int $x=`checkBoxGrp -q -v1 ds_rigTools_resizeCBG`;
+	int $y=`checkBoxGrp -q -v2 ds_rigTools_resizeCBG`;
+	int $z=`checkBoxGrp -q -v3 ds_rigTools_resizeCBG`;
+	ds_rigLib_resizeCurves({}, $x, $y, $z, $scale);
+}
+
+//	**ds_rigTools_txCurveWrapper - gathers necessary info to send to main proc
+global proc ds_rigTools_multiShapeWrapper()
+{
+	string $name=`textField -q -tx ds_rigTools_nameTF`;
+	ds_rigLib_multiShapeAdd({}, $name);
+}
+
+//	**ds_rigTools_mirrorJntsWrapper - gathers necessary info to send to main proc
+global proc ds_rigTools_mirrorJntsWrapper()
+{
+	string $axis;
+	string $function;
+	string $what=`textField -q -tx ds_rigTools_mirrorSearchTF`;
+	string $with=`textField -q -tx ds_rigTools_mirrorReplaceTF`;
+	int $rbg=`radioButtonGrp -q -sl ds_rigTools_mirrorAxisRBG`;
+	int $func=`checkBox -q -v ds_rigTools_mirrorFuncBehaveCB`;
+	if($rbg==1)
+		$axis="XY";
+	if($rbg==2)
+		$axis="YZ";
+	if($rbg==3)
+		$axis="XZ";
+	if($func==1)
+		$function="behavior";
+	else
+		$function="";
+	ds_rigLib_multiMirrorJoint({}, $axis, $function, $what, $with);	
+}
+
+//	**ds_rigTools_shapeVisWrapper - gathers necessary info to send to main proc
+global proc ds_rigTools_shapeVisWrapper()
+{
+	string $sel[]=`ls -sl`;
+	string $master=`textField -q -tx ds_rigTools_shapeVisMasterTF`;
+	string $attr=`textField -q -tx ds_rigTools_shapeVisAttrTF`;
+	if(size($sel)<1)
+		{
+		error "Nothing Selected!!! Please select objects for ds_rigTools_shapeVisConnect()";
+		}
+	else
+		{
+		for($i=0;$i<size($sel);++$i)
+			{
+			if(objExists($master+"."+$attr)!=true)
+				{
+				addAttr -ln $attr -at "bool" -k 1 -dv 1 $master;
+				}
+			ds_rigLib_shapeVis(($master+"."+$attr), $sel[$i]);
+			}
+		}
+}
+
+global proc ds_rigTools_renameWrapper(string $case)
+{
+	string $what=`textField -q -tx ds_rigTools_renameSearchTF`;
+	string $with=`textField -q -tx ds_rigTools_renameReplaceTF`;
+	string $prefix=`textField -q -tx ds_rigTools_renamePrefixTF`;
+	string $suffix=`textField -q -tx ds_rigTools_renameSuffixTF`;
+	string $rename=`textField -q -tx ds_rigTools_renameRenameTF`;
+	int $start=`intField -q -v ds_rigTools_renameStartIF`;
+	ds_rigLib_rename({}, $case, $what, $with, $prefix, $suffix, $rename, $start);
+}
